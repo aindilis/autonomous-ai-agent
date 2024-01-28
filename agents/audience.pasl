@@ -1,0 +1,28 @@
+:- module('audience',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Control our audience domain
+
+:- dynamic investigate/1.
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+%% :- spami_load_library([name('freekbs2'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/freekbs2.pasl')]).
+%% :- spami_load_agent([name('sieve'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sieve.pasl')]).
+
+%% %% :- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+%% %% :- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+%% %% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
+
+%% sourcedFrom('').
+
++!run(audience,_Arguments,_Output) <-
+	!say_msg('this is a test',Results).
+
+%% INCORPORATE ALL OF THE RULES, SUCH AS ACLs, Execute communication
+%% intents. Involve LLMs in rephrasing things.
+
++!ensureNotPromosm(Content) <-
+	true.
+

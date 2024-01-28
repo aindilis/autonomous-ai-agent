@@ -1,0 +1,75 @@
+:- module('architect',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Architect
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+sourcedFrom('/var/lib/myfrdcsa/codebases/internal/architect').
+
++!run(architect,Arguments,_Output) <-
+	!run(architect,[inputList([Entity])],Results).
+
+%% STUDY THE SOFTWARE AND RESOURCES WE ALREADY HAVE, EITHER ALREADY
+%% PRESENT OR ONCE DOWNLOADED
+
+
+
+%% NAVIGATE THE COMPUTER, MANAGE FEATURE SET SEARCHES, ETC
+
+
+%% Asking LLM:
+
+%% What are some functions that one would expect of a program that
+%% curates software and resources to build AI? The system is called
+%% Architect, and it has vast libraries full of software systems,
+%% ready to be packged, or already packaged.
+
+%% Computing result and adding to cache
+
+%% 1. Software Recommendations: Architect should provide personalized
+%% recommendations for AI software and resources based on the user's
+%% requirements and past usage patterns.
+
+%% 2. Package Management: Architect should offer easy package
+%% management tools to facilitate the installation and maintenance of
+%% AI software packages and libraries.
+
+%% 3. Dependency Analysis: Architect should perform a comprehensive
+%% analysis of dependencies between different software components to
+%% ensure seamless integration and reduce compatibility issues.
+
+%% 4. Version Control: Architect should provide version control tools
+%% to manage different versions of software packages and libraries,
+%% allowing users to revert to previous versions if needed.
+
+%% 5. Integration Capabilities: Architect should be able to integrate
+%% AI software with various other systems and technologies, such as
+%% machine learning frameworks, data storage systems, and cloud
+%% platforms.
+
+%% 6. Resource Management: Architect should offer tools to manage the
+%% allocation of computing resources, such as CPU, memory, and GPU,
+%% for AI tasks.
+
+%% 7. Performance Monitoring: Architect should monitor the performance
+%% of AI applications and identify bottlenecks or areas for
+%% improvement.
+
+%% 8. Security and Compliance: Architect should ensure the security
+%% and compliance of AI software packages and libraries with relevant
+%% regulations and industry standards.
+
+%% 9. User Management: Architect should offer user management
+%% capabilities to create, manage, and grant access to different roles
+%% and permissions within the system.
+
+%% 10. Documentation and Training: Architect should provide
+%% comprehensive documentation and training resources for users to
+%% learn about AI software and best practices for using it
+%% effectively.
+
+
+%% Go ahead and make something for it to read the FRDCSA.xml file and
+%% then help guide searches for the capabilities.

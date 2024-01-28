@@ -1,0 +1,24 @@
+:- module('metaplanner',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+
++!run(metaplanner,[],[output([Results1,Results2])]) <-
+	!run(metaplanner,[iemConfiguration(4)],[output([Results1,Results2])]).
+
++!run(metaplanner,Arguments,[output([Results1,Results2])]) <-
+	argt(Arguments,[iemConfiguration(IEMConfiguration)]);
+	!metaplan(IEMConfiguration,Results1,Results2);
+	!dump([Results1,Results2]).
+
++!metaplan(_IEMConfiguration,Results1,Results2) <-
+	query_flp(setOption(iemConfiguration,4),Result0);
+	query_flp(cleanFinancial,Result0a);
+	query_flp(setupFinancial,Result0b);
+	query_flp(generatePageFor(iem,admin,[],Result1),Result2);
+	!dump([result0,Result0,result1,Result1,result2,Result2]);
+	query_flp(cleanFinancial,Result0c).
+
+	%% query_flp(execute_with([iemConfiguration(4)],generatePageFor(iem,admin,[],Results1)),Results2).

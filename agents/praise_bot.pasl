@@ -1,0 +1,33 @@
+:- module('praise_bot',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/motivator/to.do').
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/compliment-generation').
+
+%% Praise Bot
++!run(praise_bot,_Arguments,_Output) <-
+	!playReward(accomplishment).
+
++!playReward(accomplishment) <-
+	%% FIRST MAKE SURE THE AUDIO IS TURNED DOWN
+	shell_command_async('mplayer "/home/andrewdo/intro.wav"').
+
+%% Figure out when it should praise you, when it hits you, gamification - the red . Reinforcing. Alexa would be able prompting.
+
+%%  (multimodal feedback - gamification. Todo list system
+%%   recognizing "way to work on your todo list")
+%%  (play that audio when I hit a
+%%   certain)
+%%  (Auto-detection of completed todo list items, and issuing
+%%   praise, either reward musically or verbally or etc)
+%%  (multiple different ways to be reinforced)
+
+%%  (what phrases do you tend to find most )
+%%  (definitely don't want fame but I do want results)
+
+%%  ("You're Getting Results", when something is accomplished)
+
+%% (have praisebot trigger on git commits. Speak about what got done.)
+

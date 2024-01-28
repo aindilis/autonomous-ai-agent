@@ -1,0 +1,186 @@
+:- module('util1',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Print messages
+
++!say(List) <-
+	NewList = ['PRINT:'|List];
+	atomic_list_concat(NewList,' ',Atom);
+	print_term(Atom,[]);
+	nl.
+
++!echo(List) <-
+	atomic_list_concat(List,'',Atom);
+	print_term(Atom,[]);
+	nl.
+
++!dump(List) <-
+	print_term(List,[quoted(true)]);
+	nl.
+
+%% +!dump(List) <-
+%% 	nl;
+%% 	nl;
+%% 	print_term(List,[]);
+%% 	nl;
+%% 	nl.
+
+
+%% SPrint messages
+
++!render_list(Items,ItemsString) <-
+	findall(['[ [ [',Item,'] ] ]\n'],member(Item,Items),ItemsStrings);
+	append(ItemsStrings,List);
+	atomic_list_concat(List,' ',ItemsString).
+
+
+%% Shell Script Tech
+
++export(ENVVar,Value) <-
+	!say([ENVVar,is,assigned,to,Value]).
+
++process(ProcessDescription) <-
+	!say(['Beginning:',ProcessDescription]).
+
+%% -process(ProcessDescription) <-
+%% 	!say(['Ending',ProcessDescription]).
+
+%% !say(['--------------------------------']).
+
++!assign(ENVVar,Result) <-
+ 	+export(ENVVar,Result).
+
++!start(ProcessDescription) <-
+	+process(ProcessDescription).
+
++!stop(ProcessDescription) <-
+	!say(['Ending:',ProcessDescription]);
+	retract(belief(process(ProcessDescription),[source(self)])).
+	%% !removeBelief(process(ProcessDescription),_).
+
++!exports([]) <-
+	true.
+
++!exports([_]) <-
+	fail.
+
++!exports(List) <-
+	List = [Variable,Value|Rest];
+	+export(Variable,Value);
+	!exports(Rest).
+
+
+%% LLM tech
+
++!askLLMList(InputList,OutputList) <-
+	atomic_list_concat(InputList,' ',Query);
+	llms:askLLM(Query,Answer);
+	llms:extract_list(Answer,[OutputList]).
+
++!askLLMConcat(InputList,Answer) <-
+	!dump([test1]);
+	atomic_list_concat(InputList,' ',Query);
+	!dump([test2]);
+	llms:askLLM(Query,Answer);
+        !dump([test3]).
+
++!summarize(Text,Summary) <-
+	!dump(['Message: ',Text]);
+	%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/llms.pl
+	!askLLMConcat(['Please summarize the following text contents: ',
+		       ' < < < ',Text,' > > >.: '
+		      ],
+		      Summary);
+	!dump(['Summary: ',Summary]).
+
+
+%% MultiAgent communication
+
++!queryFLP(Query,Results) <-
+	query_formalog_agent(flp,Query,Results).
+
+
+%% Control flow
+
++!iterate_over([],_Arguments,[]) <-
+	true.
+
++!iterate_over([Head|Tail],Arguments,Results) <-
+	append(Head,[Result],PredArgs);
+	!dump([iterate_over([Head|Tail],Arguments,Results)]);
+	argt(Arguments,[call(Predicate)]);
+	!dump([call(Predicate)]);
+	Functor =.. [Predicate|PredArgs];
+	!dump([Functor]);
+	call(Functor);
+	last(PredArgs,Result1);
+	!dump([Result1]);
+	!iterate_over(Tail,Arguments,Result2);
+	!dump([!iterate_over(Tail,Arguments,Result2)]);
+	Results = [Result1|Result2];
+	!dump([Results]).
+
+%% LLM
+
++!askLLM(Question,Answer) <-
+	if(is_list(Question),
+	   atomic_list_concat(Question,'',Query),
+	   Query = Question);
+	askLLM(Query,Answer).
+
+%% Rex
+
++!execRemoteShellCommand(Input,Result) <-
+	if(is_list(Input),
+	   atomic_list_concat(Input,'',Command),
+	   Command = Input);
+	!remote_execute(Command,Result).
+
++!execRemoteShellCommand(Server,UserName,Input,Result) <-
+	if(is_list(Input),
+	   atomic_list_concat(Input,'',Command),
+	   Command = Input);
+	!remote_execute(Server,UserName,Command,Result).
+
+
++!remote_execute(Command,Result) <-
+	listing(serverOnline);
+	listing(serverNotOnline);
+	?serverOnline;
+	remoteExecution(Command,Result);
+	.print('remote_execute succeeded').
+
+-!remote_execute(Command,Result) <-
+	?serverNotOnline;
+	.print('remote_execute failed because: server not online').
+
+-!remote_execute(Command,Result) <-
+	.print('remote_execute failed because: reason unknown').
+
+
++!remote_execute(System,UserName,Command,Result) <-
+	?serverOnline(Server);
+	.print('remote_execute succeeded');
+	remoteExecution(System,UserName,Command,Result).
+
+-!remote_execute(System,UserName,Command,Result) <-
+	?serverNotOnline(Server);
+	.print('remote_execute failed because: server not online').
+
+-!remote_execute(System,UserName,Command,Result) <-
+	.print('remote_execute failed because: reason unknown').
+
+
+
+%% Local execute
+
++!execLocalShellCommand(Input,Result) <-
+	if(is_list(Input),
+	   atomic_list_concat(Input,'',Command),
+	   Command = Input);
+	!local_execute(Command,Result).
+
++!local_execute(Command,Result) <-
+	localExecution(Command,Result);
+	.print('local_execute succeeded').
+

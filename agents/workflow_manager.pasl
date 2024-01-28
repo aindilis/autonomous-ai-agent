@@ -1,0 +1,18 @@
+:- module('workflow_manager',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Do workflow management for FLP here
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+%% :- spami_load_library([name('freekbs2'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/freekbs2.pasl')]).
+%% :- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+%% :- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+%% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
+
++!run(workflow_manager,_Arguments,_Output) <-
+	%% prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['Org::FRDCSA::ExecutiveFunctionAssistant::Test1']);
+	!workflow(andrewdo,Results).
+
++!workflow(User,Results) <-
+	true.

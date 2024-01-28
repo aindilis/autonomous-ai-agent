@@ -1,0 +1,13 @@
+:- module('svrs',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
++!run(svrs,Arguments,Ouptut) <-
+	true.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% We need to monitor all sensors and indicators
+
+%% Manage the climate. Detect when it gets too hot or cold in
+%% particular room/sensor.
+

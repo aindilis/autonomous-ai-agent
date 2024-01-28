@@ -1,0 +1,46 @@
+:- module('sieve',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Sentinel-IaEc-VgEr
+
+:- dynamic investigate/1.
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+:- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+:- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
+
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/iaec/prolog/attempts/3/iaec.pl').
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/sentinel/scripts/sentinel').
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/kbfs-formalog/inotify.pl').
+sourcedFrom('/var/lib/myfrdcsa/collaborative/git/do-convert-logic/do_convert_logic.pl').
+
++!run(sieve,[],_Output) <-
+	!run(sieve,[fsEntity('/home/andrewdo/morbini-phd-thesis.pdf')],Output).
+
++!run(sieve,Arguments,_Output) <-
+	argt(Arguments,[fsEntity(Entity)]);
+	!run(iaec,[inputList([Entity])],Results).
+
+%%	+!run(iaec,[Self,inputList => Entity, Test, test2 => Test2],Results).
+
+
+%% +!run2 <-
+%% 	.prolog_consult('/var/lib/myfrdcsa/codebases/minor/vger2/vger2.pl');
+%% 	%% .prolog_consult('/var/lib/myfrdcsa/codebases/minor/iaec/prolog/attempts/3/iaec.pl');
+%% 	.findall(X,poss(X),Xs);
+%% 	!dump([xs,Xs]).
+
+
+%% SOME IDEAS, maybe have IAEC check the tokens in a PDF file, and if
+%% small enough, do some QnA over the file contents, like summarizing
+%% it for one line, for one paragraph, and then also, classifying it
+%% into which FRDCSA codebase the PDF belongs, then moving it to the
+%% <CODEBASE>/doc dir and finally symlinking from its present location
+%% to the doc. Or, rather, put it in Digilib and symlink to the doc
+%% and local dirs.
+
+
+%% Finish this stuff:
+%% /home/andrewdo/perl5/perlbrew/perls/perl-5.28.1_WITH_THREADS/lib/site_perl/5.28.1/KBFS/Systemize/Index.pm

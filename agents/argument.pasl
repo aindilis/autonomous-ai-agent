@@ -1,0 +1,24 @@
+:- module('argument',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+
+%% See 'Argumentation in Artificial Intelligence' chapter 14 on
+%% p.g. 281/295. This document outlines various types of arguemntation
+%% that one can do in a persuasive dialog context. It includes some
+%% performatives.
+
+
+
+
+
+%% Helper plans
+
+%% FIXME: Attempt to resolve iterate_over or then REDO iterate_over as
+%% Prolog instead of AgentSpeak
+
+%% !iterate_over(SortedThreats,[polemic(Polemic),
+
+
+%% Breadth First Search

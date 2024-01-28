@@ -1,0 +1,106 @@
+:- module('web_agent',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+
++!run(web_agent,_Arguments,Output) <-
+	!run_web_agent('<URI>',Output);
+	!dump([output,Output]).
+
++!run_web_agent(URI,[Results1,Results2]) <-
+	%% !get(URI,Results1);
+	%% !content(Results2);
+	!web_agent_explore(URI).
+
+
+featureRequest('WebAgent should check for new materials from important sites, periodically. Especially if it knows of a pending release schedule.').
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% TOOLS TO CONTROL WEB INTERFACE
+
+%%%%%%%%%%%%%%%
+
+%% 'WWW::Mechanize::Cached'
+
+%%%%%%%%%%%%%%%
+
+%% 'Selenium'
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Actions to perform using Web Interface
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/perllib_cacher.pl
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/perll_cacher.txt
+
++!get(URI,Results) <-
+	perllib_cacher:get([uri(URI)],Results).
+
++!content(Results) <-
+	perllib_cacher:content(Results).
+
++!links(Results) <-
+	perllib_cacher:links(Results).
+	
++!getURIsAndText(Links,URIsAndTexts) <-
+	perllib_cacher:getURIsAndText(Links,URIsAndTexts).
+
++!google(Search,Results) <-
+	true.
+
++!read_source_and_answer_questions(URI,Question,Answer) <-
+	true.
+
++!find_links_that_lead_to_resource(URI,Resource,Links) <-
+	true.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Tools for Focused Crawling
+
++!explore_web(URI) <-
+	!goto(URI);
+	!uri_contents(Contents);
+	+seen(URI);
+	!read_contents(Contents);
+	atom_split(FilesString,'\n',Files);
+	forall(member(File,Files),printPurposeOf(Directory,File)).
+
++!google(Search,Results) <-
+	true.
+
++!duckDuckGo(Search,Results) <-
+	true.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Tools for Web Agent
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/apis/perllib_cacher.pl
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/apis/perllib_cacher.txt
+
++!web_agent_explore(URI) <-
+	!get(URI,_Results);
+	!content(Contents);
+	to_text(Contents,[ToTextResults]);
+	!dump([toTextResults,ToTextResults]);
+	member('=>'('Text',Text),ToTextResults);
+	!dump([aa]);
+	!askLLMConcat(['Please summarize the following webpage contents: < < < ',Text,' > > >.: '],Summary);
+	!dump([summary,Summary]);
+	+hasSummary(URI,Summary);
+	%% +hasProperties(URI,[=>(summary,Summary)]);
+	!links(Links);
+	!getURIsAndText(Links,URIsAndTexts);	
+	!dump(URIsAndTexts).
+
++hasSummary(Item,Summary) <-
+	!dump([read,all,about,it]).
+
++!web_agent_explore_recursive_no_parent(URIs,Map) <-
+	%% we're going to want to map the link structure into Prolog
+	%% now, and spider it.  And maybe summarize every doc with the
+	%% LLM, or just the most important ones.
+	true.

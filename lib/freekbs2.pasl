@@ -1,0 +1,3 @@
+:- module('freekbs2',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+	

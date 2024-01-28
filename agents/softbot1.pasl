@@ -1,0 +1,135 @@
+:- module('softbot1',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% :- module('softbot1',['+'/1,'-'/1,'!'/1]).
+
+:- dynamic serverOnline/0, serverNotOnline/0.
+:- dynamic serverOnline/1, serverNotOnline/1.
+
++!run(softbot1,Arguments,Output) <-
+	true.
+
++!test_check_and_run(Result) <-
+	!server_is_online_p;
+	!execRemoteShellCommand('ls -1 /',Result).
+
++!test_check_server <-
+	.print('checking');
+	!server_is_online_p;
+	.print('still checking...');
+	?serverOnline;
+	.print('done checking.').
+
++!server_is_online_p <-
+	serverIsOnlineP;
+	+serverOnline.
+
+-!server_is_online_p <-
+	+serverNotOnline.
+
++serverOnline <-
+	.print('Server is online').
+
++serverNotOnline <-
+	.print('Server is not online').
+
++!server_is_online_p(Server) <-
+	serverIsOnlineP(Server);
+	+serverOnline(Server).
+
+-!server_is_online_p(Server) <-
+	+serverNotOnline(Server).
+
++serverOnline(Server) <-
+	.print(['Server is online: ',Server]).
+
++serverNotOnline(Server) <-
+	.print(['Server is not online: ',Server]).
+
++!explore_fs(Directory) <-
+	+seen(Directory);
+	!execRemoteShellCommand(['ls -1 ',Directory],[FilesString]);
+	atom_split(FilesString,'\n',Files);
+	forall(member(File,Files),printPurposeOf(Directory,File)).
+
++!readManPage(Object,ManPage) <-
+	!execRemoteShellCommand(['man ',Object,' | ','cat'],[ManPage]).
+
++!generateShellCommandUsingDocumentation(Introduction,ShellCommand,Question,Output) <-
+	!readManPage(ShellCommand,ManPage);
+	!askLLM([Introduction,ManPage,Question],Output).
+
++!getHelpForCommand(Command,Help) <-
+	!execRemoteShellCommand([Command,' -h'],[Help1]);
+	!askLLM(['If running ```<COMMAND> -h``` printed the help for <COMMAND>, say simply SUCCESS and nothing else. If it did not print the help for <COMMAND>,  and we need to run ```<COMMAND> --help```, say simply FAILURE and nothing else: ". ',Help1,' '],Result1);
+	print(Result1);
+	if(containsString(Result1,'SUCCESS'),Help = Help1,
+	   if(containsString(Result1,'FAILURE'),(Help = 'ERROR',fail),Help = 'UNKNOWN STATE')).
+
+-!getHelpForCommand(Command,Help) <-
+	!execRemoteShellCommand([Command,' --help'],[Help1]);
+	!askLLM(['If running ```<COMMAND> --help``` printed the help for <COMMAND>, say simply SUCCESS and nothing else. If it did not print the help for <COMMAND>, say simply FAILURE and nothing else: ". ',Help1,' '],Result1);
+	print([result1,Result1]);
+	if(string_match_p(Result1,'SUCCESS'),Help = Help1,fail).
+
++!test_plan_failure(Message) :: true <-
+	print_term([message1,Message],[]);
+	+testWorked;
+	fail.
+
+-!test_plan_failure(Message) :: true <-
+	print_term([message2,Message],[]);
+	+didntWork2.
+
++!add_belief_test(Bs) :: true <-
+	get_beliefs(Bs).
+
+-!add_belief_test(_Bs) :: true <-
+	print([boohoo]).
+
+
+%% +!fail :: fail <-
+%% 	fail.
+
+%% -!test_plan_failure(Message) :: true <-
+%% 	print_term([message2,Message],[]);
+%% 	print_term('Success! Plan Failure handler worked',[]).
+
+	   %% (
+	   %%  !execRemoteShellCommand([Command,' --help'],[Help2]);
+	   %%  !askLLM(['If running ```<COMMAND> --help``` printed the help for <COMMAND>, say simply SUCCESS and nothing else. If it did not print the help for <COMMAND>,  say simply FAILURE and nothing else: ". ',Help2],Result2);
+	   %%  if(string_match_p(Result2,'FAILURE'),
+	   %%     Help = 'Could not load the help',
+	   %%     Help = Help2)
+	   %%  ),
+	   %% if(string_match_p(Result1,'SUCCESS'),
+	   %%    Help = Help1,
+	   %%    true)
+
+%% Integrate SPSE2-Formalog here. Have a quick n dirty caching
+%% mechanism for SPSE2-Formalog, so don't have to hammer the DB every
+%% time we wish to load it.
+
+%% Generate a signature of all our prolog code that we wish the LLM to
+%% compose functions from.
+
+%% Have the ability to introspect into our source code.
+
+%% Generate PDDL domains and such from here.
+
+%% query Cyc
+
+
++!testFailureHandlingMechanism :: true <-
+	!failureHandlingAchievePlan_NA;
+	!failureHandlingAchievePlan_NR;
+	!failureHandlingAchievePlan_.
++!failureHandlingAchievePlan_NA :: 1>2 <-
+	%this is expected to fail, the message should not appear
+	write("test !! -ok. (Solving an achieve plan - )"),nl.
+-!failureHandlingAchievePlan_NA#[error(non_applicable_plan)] :: true <-
+	write("test FH_A1 ok. Annotated failure handling plan for error(non_applicable_plan)"),nl.
+-!failureHandlingAchievePlan_NR#[error(no_relevant_plan)] :: true <-
+	write("test FH_A2 ok. Annotated failure handling plan for error(no_relevant_plan)"),nl.
+-!failureHandlingAchievePlan_ :: true <-
+	write("test FH_A3 ok. Non-annotated failure handling plan"),nl.

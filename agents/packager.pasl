@@ -1,0 +1,99 @@
+:- module('packager',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+
+%% see also
+%% /var/lib/myfrdcsa/codebases/minor/esp/attempts/1/esp_package.pasl
+
+%% Helper plans
+
+%% Breadth First Search
+
++!run(packager,_Arguments,_Output) <-
+	solve(!package(systemFn('zenon','0.8.2')));
+	!beginPackagingSoftware.
+
++!package(systemFn(Name,Version)) :: existsDirType(binaryDirectory,systemFn(Name,Version)) <-
+	(   print(['Package exists: ',Name,'-',Version])).
+
++!package(systemFn(Name,Version)) :: not existsDirType(binaryDirectory,systemFn(Name,Version)) <-
+	(   print(['Packaging: ',Name,'-',Version]));
+	!sandbox(systemFn(Name,Version)).
+
++!sandbox(System) :: existsDirType(sandboxDirectory,System) & existsDirType(sandboxSubdirectory,System) <-
+	(   print(['Sandbox Directories exist.']));
+	!sandboxDebian(System).
+
++!sandbox(System) :: not (existsDirType(sandboxDirectory,System) & existsDirType(sandboxSubdirectory,System)) <-
+	(   print(['Sandbox Directories do not exist.'])).
+	
+
++!sandboxDebian(System) :: existsDirType(debianDirectory,System) <-
+	(   print(['Sandbox Debian Directory exists.'])).
+
++!sandboxDebian(System) :: not existsDirType(debianDirectory,System) <-
+	(   print(['Sandbox Debian Directory does not exist.'])).
+
+
+%% see also /var/lib/myfrdcsa/codebases/minor/vger2/vger2.pl
+
++!beginPackagingSoftware <-
+	%% FIXME: we clearly need persistent factbase here.
+	%% !sortShouldDownloadQueue(SortedQueue;
+	?poss(should(download(SystemName)));
+	!dump([systemName,SystemName]).
+
+
+%% MAKE PACKAGER/ESP WORK MORE LIKE IAEC:
+
+%% +!run(iaec,[],Output) <-
+%% 	setDebug(on);
+%% 	!run(iaec,[inputList(['/home/andrewdo/morbini-phd-thesis.pdf'])],Output).
+
+%% +!run(iaec,Arguments,[beliefs(Beliefs)]) <-
+%% 	argt(Arguments,[inputList(InputList)]);
+%% 	!investigator(InputList,Beliefs).
+
+%% +!investigator(InputList,Beliefs) <-
+%% 	member(Input,InputList);
+%% 	!investigate(Input);
+%% 	.sleep(1);
+%% 	list_beliefs(Beliefs).
+
+%% +!investigate(A) :: atom(A) <-
+%% 	!investigate_atom(A).
+
+%% +!investigate_atom(A) <-
+%% 	!investigate_file(A).
+
+%% -!investigate_directory(A) <-
+%% 	!investigate_directory(A).
+
+%% +!investigate_file(A) :: atom(A) & unknown(isa(A,existingFilename)) & exists_file(A) <-
+%% 	+isa(A,existingFilename).
+
+%% +!investigate_directory(A) :: atom(A) & unknown(isa(A,existingSymlink)) & exists_symlink(A) <-
+%% 	+isa(A,existingDirname).
+
+%% +investigate(A) :: atom(A) & unknown(isa(A,existingDirname)) & exists_directory(A) <-
+%% 	+isa(A,existingDirname).
+
+%% +isa(A,existingFilename) :: unknown(hasProperty(A,executable)) & executable_file(A) <-
+%% 	+hasProperty(A,executable).
+
+%% +isa(A,existingFilename) :: unknown(hasExtension(A,_)) & has_filename_extension(A,B) <-
+%% 	+hasExtension(A,B).
+
+%% +hasExtension(A,_) :: unknown(hasMIMEType(A,_)) & has_mime_type(A,B) <-
+%% 	+hasMIMEType(A,B).
+
+%% +hasMIMEType(A,'application/pdf') :: unknown(hasCorrespondingTextFile(A,_)) & has_corresponding_text_file(A,B) <-
+%% 	+hasCorrespondingTextFile(A,B).
+
+%% +hasCorrespondingTextFile(A,B) :: unknown(isa(B,existingFilename)) <-
+%% 	!investigate(B).
+
+%% +hasMIMEType(A,'text/plain') :: unknown(hasCharacterCount(A,B)) & `has_character_count(A,B) <-
+%%  	+hasCharacterCount(A,B).

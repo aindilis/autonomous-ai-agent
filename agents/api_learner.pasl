@@ -1,0 +1,34 @@
+:- module('api_learner',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Cyc_Learner
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('web_agent'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/web_agent.pasl')]).
+
+
++!run(api_learner,Arguments,Output) <-
+	!test_cyc_connection(Output).
+
++!test_cyc_connection(Retval) <-
+	cycQuery(isa(X,'Dog'),Retval);
+	!dump([retval,Retval]);
+	true.
+
+%% What are some things we can do to learn APIs, such as with LLMs, or
+%% in Cyc, or what not?
+
+%% Use WebAgent to locate browse and obtain the API docs (locally), as
+%% well as our cyc_client.pl stuff, and then ask LLM to generate some
+%% example cycQuery/cycEval calls.
+
++!test_cyc_api_learning <-
+	!obtain_api_documentation.
+
++!obtain_api_documentation <-
+	!web_agent_explore_recursive_no_parent(['file:///var/lib/myfrdcsa/codebases/minor/cyc-doc/data-git/cycdoc/index.html'],Map),
+!run_web_agent(,Output);
+	
+
+%% Have it also look at it's own code, and suggest improvements.

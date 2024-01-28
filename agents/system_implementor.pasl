@@ -1,0 +1,16 @@
+:- module('system_implementor',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/system-implementor').
+
++!run(system_implementor,Arguments,Output) <-
+	argt(Arguments,[documents(Documents)]);
+	!implementSystem(Documents).
+
++!implementSystem(Documents) <-
+	%% FIXME: Be sure to take research papers, break them down, and figure out
+	%% how to implement the technology.
+	forall(member(Document,Documents),
+	       solve(!investigate_file(Document))).

@@ -1,0 +1,55 @@
+:- module('manager',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Control our manager domain
+
+:- dynamic investigate/1.
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+%% :- spami_load_library([name('freekbs2'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/freekbs2.pasl')]).
+%% :- spami_load_agent([name('sieve'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sieve.pasl')]).
+
+%% %% :- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+%% %% :- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+%% %% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
+
+sourcedFrom('/var/lib/myfrdcsa/collaborative/git/jason/examples/manager-old-adapter/manager.asl').
+
++!run(manager,_Arguments,_Output) <-
+	!say_msg('this is a test',Results);
+	.wait(15000).
+
+%% emergencyContactFor(person1,person2).
+
+%% !acknowledged(person1,"Do Task 1").
+
+%% +!acknowledged(Agent,Message) <-
+%%     contactViaAbout(Agent,headphones,Message).
+
+%% -!acknowledged(Agent,Message) <-
+%%     .wait(1000);
+%%     contactViaAbout(Agent,loudSpeakers,Message).
+
+%% -!acknowledged(Agent,Message) <-
+%%     .wait(1000);
+%%     contactViaAbout(Agent,textMessage,Message).
+
+%% -!acknowledged(Agent,Message) <-
+%%     .wait(1000);
+%%     contactViaAbout(Agent,phoneCall,Message).
+
+%% -!acknowledged(Agent,Message) <-
+%%     ?emergencyContactFor(Agent,EmergencyContact);
+%%     .wait(1000);
+%%     contactViaAbout(EmergencyContact,textMessage,Message).
+
+%% -!acknowledged(Agent,Message) <-
+%%     ?emergencyContactFor(Agent,EmergencyContact);
+%%     .wait(1000);
+%%     contactViaAbout(EmergencyContact,phoneCall,Message).
+
++!say_msg(Message,Results) <-
+	query_flp(sayMessage(andrewDougherty,Message,X),Results);
+	.print(['Results: ',Results]).

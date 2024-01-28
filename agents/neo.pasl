@@ -1,0 +1,68 @@
+:- module('neo',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Agent Facilitator
+
+:- dynamic investigate/1.
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
++!run(neo,Arguments,_Output) <-
+	.neo_load_all_agents;
+	findall(Agent,
+		(
+		 loaded(agent,Agent),
+		 Agent:listing,
+		 solve(+agentLoaded(Agent))
+		),Agents).
+
++agentLoaded(Agent) <-
+	!dump(['Agent running: ',Agent]);
+	if(member(Agent,[neo]),
+	   true,
+	   solve(^^run(Agent,[],Output))).
+
+%% have NEO have the ability to start and stop agents.
+
+%% Must guard, guard, guard, guard, guard...
+%% FRDCSA_DEFAULT_LLM_ENGINE_NAME=Mistral /var/lib/myfrdcsa/codebases/minor/llms/scripts/query-large-language-models.pl -m Mistral
+%% andrewdo@ai2:/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents$ Already running
+%% > Please list some functions that one would expect in a multiagent system facilitator, like start/stop/pause, etc:
+%% Computing result and adding to cache
+%%  Sure, here are some common functions that one would expect in a multiagent system facilitator:
+
+%% 1. Start/Stop: The ability to start or stop individual agents or entire multiagent systems.
+%% 2. Pause/Resume: The ability to pause the execution of individual agents or entire multiagent systems and resume them later.
+%% 3. Load/Save: The ability to load or save the current state of an agent or a multiagent system.
+%% 4. Restart: The ability to restart individual agents or entire multiagent systems.
+%% 5. Monitor: The ability to monitor the execution of individual agents or entire multiagent systems.
+%% 6. Debug: The ability to debug and troubleshoot individual agents or entire multiagent systems.
+%% 7. Configuration: The ability to configure various parameters and settings for individual agents or entire multiagent systems.
+%% 8. Command: The ability to send commands to individual agents or entire multiagent systems.
+%% 9. Query: The ability to query individual agents or entire multiagent systems for information.
+%% 10. Visualization: The ability to visualize the execution of individual agents or entire multiagent systems.
+
+%% > Please list even more functions that one would expect in a multiagent system facilitator, like start/stop/pause, etc:
+%% Computing result and adding to cache
+%%  Here are some additional functions that one might expect in a multiagent system facilitator:
+
+%% 1. Agent discovery: The ability to search for and locate available agents within the network.
+%% 2. Agent status monitoring: The ability to monitor the current status of all agents within the network, including their load, resources, and availability.
+%% 3. Resource allocation: The ability to allocate resources (e.g., CPU cycles, memory, bandwidth) to different agents or tasks as needed.
+%% 4. Task scheduling: The ability to schedule tasks and jobs to be executed by different agents within the network, taking into account their capabilities and availability.
+%% 5. Message routing: The ability to route messages between agents within the network, ensuring that they are delivered to the appropriate destination quickly and efficiently.
+%% 6. Fault tolerance: The ability to detect and recover from faults or failures within the network, such as agent crashes or network outages.
+%% 7. Security: The ability to secure the communication between agents within the network, protecting sensitive data and preventing unauthorized access.
+%% 8. Scalability: The ability to easily scale the system by adding or removing agents and resources as needed.
+%% 9. Performance monitoring: The ability to monitor the performance of the system as a whole, identifying bottlenecks and areas for optimization.
+%% 10. Reporting and analysis: The ability to generate reports and analyze data from the system, providing insights into agent behavior, resource usage, and overall system performance.
+
+%% > 
+
+%% +!neoAction(startAgent,Agent) <-
+%% 	true.
+%% +!neoAction(stopAgent,Agent) <-
+%% 	true.
+%% +!neoAction(pauseAgent,Agent) <-
+%% 	true.

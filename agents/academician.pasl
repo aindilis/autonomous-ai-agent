@@ -1,0 +1,57 @@
+:- module('academician',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Control our academician domain
+
+:- dynamic investigate/1.
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_library([name('freekbs2'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/freekbs2.pasl')]).
+:- spami_load_agent([name('sieve'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sieve.pasl')]).
+
+%% :- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+%% :- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+%% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
+
+sourcedFrom(/'var/lib/myfrdcsa/codebases/minor/academician').
+
++!run(academician,_Arguments,_Output) <-
+	prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['Org::FRDCSA::Academician::Ionzero']);
+	!study(andrewdo,Results).
+
+%% FIXME: need internet or corpora access to make any real progress here.
+
++!study(User,Results) <-
+	.findall(Topic,belief(desires(User,'know-more-about'(User,Topic)),_),Topics);
+	.findall(Question,belief('has-question'(User,Question),_),Questions);
+	.findall(Document,belief(desires(User,'read-document'(User,Document)),_),Documents);
+	print_term([topics(Topics),questions(Questions),documents(Documents)],[quoted(true)]);
+	forall(member(Document,Documents),
+	       solve(!academicianInvestigate(Document)));
+	!dump([result,Result]).
+
+%% Maybe it needs to posit and track questions. "QUESTION ASKER BOT"
+!study(academician,[topic(Topic)],Result) <-
+	!askLLMConcat(['What are some good questions that we can ask about: ',Topic],
+		      Result);
+	list_beliefs(_).
+
++!read_man_page(Atom,ManPage) <-
+	%% PLEASE NOTE THIS RELIES ON WRITING A FILE TO DISK, COULD
+	%% MESS UP SSDs.
+	!execLocalShellCommand(['man ',Atom,' | ','cat'],ManPage).
+
++!academicianInvestigate(Document) <-
+	?isa(Document,manPageBuffername);
+	
++?isa(Document,manPageBuffername) <-
+	regex_atom('^\\*Man (.+)\\*$',[],Document,[Object]);
+	Object \= [];
+	atom_codes(Atom,Object);
+	view([atom,Atom]);
+	!read_man_page(Atom,ManPage);
+	+isa(Atom,manPage);
+	+isa(Document,manPageBuffername).
+
+featureRequest(academician,'Academician and other tools such as web-agent, vger2 etc, could be made to scrape ArXiv daily, and look at historical document collections.').

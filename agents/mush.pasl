@@ -1,0 +1,32 @@
+:- module('mush',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% sourcedFrom()..
+
+mushDirectoriesToWatch([
+			'/var/lib/myfrdcsa/codebases/internal/mush/data-git/howtos/when'
+		       ]).
+
++!run(mush,Arguments,Ouptut) <-
+	.prolog_consult('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prolog/mush.pl');
+	mush_inotify_main.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
++!describeError(Filename) :: isa(Filename,existingFile) <-
+	
+	%% We need to take a file such as this:
+
+	%% /var/lib/myfrdcsa/codebases/internal/mush/data-git/howtos/when/error-message-3PYqkf
+
+	%% and generate short, medium and long descriptions about its
+	%% contents (for searching semantically for particulars kinds
+	%% of errors, since the flat file doesn't include metadata).
+
+	read_data_from_file(Filename,Atom);
+	squash_atom(Atom,SquashedAtom);
+	!askLLMConcat(['Please describe the following output containing warning or error messages: < < < ',
+		       SquashedAtom,
+		       ' > > >.: '
+		      ],Results);
+	!dump([results,Results]).

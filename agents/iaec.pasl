@@ -1,0 +1,173 @@
+:- module('iaec',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% fixme('depricated in favor of iaec2.pasl').
+
+%% :- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec2.pasl')]).
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/iaec/prolog/attempts/3/iaec.pl').
+neg(sourcedFrom('/var/lib/myfrdcsa/codebases/minor/iaec/jason/attempts/1/iaec_1.asl')).
+
+%% Have an ontology of tests, such that we know if there are side
+%% effects, etc.  parsers for the results, etc.
+
++!run(iaec,[],Output) <-
+	setDebug(off);
+	!run(iaec,[inputList(['/home/andrewdo/morbini-phd-thesis.pdf',
+			      '/home/andrewdo/todo-20221115.pdf',
+			      '/home/andrewdo/flush-home-water.pdf'
+			     ])],Output).
+
++!run(iaec,Arguments,[beliefs(Beliefs)]) <-
+	.argt(Arguments,[inputList(InputList)]);
+	!investigator(InputList,Beliefs).
+
++!investigator([],[]) <-
+	true.
++!investigator([Input|Rest],[Beliefs1,Beliefs2]) <-
+	!dump('ensure that LLM is running');
+	!investigate(Input);
+	.wait(100);
+	.list_beliefs(Beliefs1);
+	!investigator(Rest,Beliefs2).
+
++!investigate(A) :: atom(A) <-
+	!investigate_atom(A).
+
+%% +!investigate_atom(A) <-
+%%  	!investigate_symlink(A).
+
++!investigate_atom(A) <-
+	!investigate_file(A).
+
+-!investigate_atom(A) <-
+	!investigate_directory(A).
+
+-!investigate_atom(A) <-
+	!investigate_symlink(A).
+
++!investigate_symlink(A) :: atom(A) & unknown(isa(A,existingSymlink)) & exists_symlink(A) <-
+	+isa(A,existingSymlink).
+
++!investigate_directory(A) :: atom(A) & not isa(A,existingFile) & unknown(isa(A,existingDirname)) & exists_directory(A) <-
+	+isa(A,existingDirname).
+
+%% !investigate_directory(A).
+
++!investigate_file(A) :: atom(A) & unknown(isa(A,existingFilename)) & exists_file(A) <-
+	+isa(A,existingFilename).
+
++isa(A,existingFilename) :: unknown(hasProperty(A,executable)) & executable_file(A) <-
+	+hasProperty(A,executable).
+
++isa(A,existingFilename) :: unknown(hasExtension(A,_)) & has_filename_extension(A,B) <-
+	+hasExtension(A,B).
+
++hasExtension(A,_) :: unknown(hasMIMEType(A,_)) & has_mime_type(A,B) <-
+	+hasMIMEType(A,B).
+
+%% +hasMIMEType(A,'application/pdf') :: hasExtension(A,pdf) <- 
+%% 	+isaDirectly(A,pdfDocment).
+
++hasMIMEType(A,'application/pdf') :: unknown(hasCorrespondingTextFile(A,_)) & has_corresponding_text_file(A,B) <-
+	+hasCorrespondingTextFile(A,B).
+
+%% FIXME: Incorporate ToText here (from web_agent.pl), to obtain .txt
+%% file from non-text files
+
++hasMIMEType(A,'text/plain') :: unknown(hasCharacterCount(A,_)) & has_character_count(A,B) & nonvar(B) <-
+ 	+hasCharacterCount(A,B).
+
++hasCorrespondingTextFile(A,B) :: unknown(isa(B,existingFilename)) <-
+	!investigate(B).
+
++hasCharacterCount(A,B) :: unknown(hasSummarization(A,_)) & fewer_characters_than(B,32768) <-
+	!dump([hooray1]);
+	.stomping_read_text_from_file(A,Text);
+	!dump([hooray2]);
+	%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/llms.pl
+	%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl
+	!summarize(Text,Summary);
+	!dump([summary,Summary]);
+	+hasSummarization(A,Summary).
+
+are(['application/pdf'],mimeTypeFn(document)).
+are(['text/plain'],mimeTypeFn(text)).
+
++hasSummarization(A,B) <-
+	!dump([hasSummary,B]);
+	.list_beliefs(_Beliefs).
+
+
+%% some things to work on:
+
+%% create text files out of document files when we can't find a text version
+
+%% take text files and classify their contents, such as researchPaper, book, etc
+
+%% hasMIMEType(A,'text/plain') & not ?hasSummarization(A,_) & 
+%% +hasCharacterCount(A,B) :: nonvar(B) & unknown(hasSummarization(A,_)) & currentLLM(LLM) & llmHasMaximumContext(LLM,Max) & fewer_characters_than(B,Max) <-
+
+
+%% +!classifyDocumentType(File,Type) :: unknown(hasTYpe(File,_)) & hasMIMEType(File,MIMEType) & isa(MIMEType,mimeTypeFn(text)) & isa(MIMEType,mimetypeFn(document)) <-
+%% 	!tryParsitParser(TextFile).
+
+%% +hasType(File,Type).
+		       
+%% +!tryParsitParser(TextFile) :: hasMIMEType(TextFile,Type) & isa(Type,documentMIMEType) <-
+	
+
+%% %% do we need to build the entire infrastructure that Jason uses?
+%% +desire(Command) <-
+%% 	solve(Command).
+
+%% FIXME: Find our IAEC documentation. Like all the stuff about proving
+%% information about strings.
+
+
+%% %% /var/lib/myfrdcsa/codebases/minor/nlu/nlu.el
+%% %% SEE: "POSSIBLY USE AN AGENT-ORIENTED DEVELOPMENT MODEL FOR CREATING
+%% %% TASKS FOR THE AGENT TO COMPLETE.  EITHER USE SPARK OR JADE/JASON,
+%% %% etc."
+
+
+%% Emacs-NLP
+
+%% Figure out how to memoize with Sayer{,2}.
+
+
+%% /var/lib/myfrdcsa/repositories/internal/git/iaec-notes
+
+
+%% /var/lib/myfrdcsa/codebases/internal/kbfs/scripts/kbfs-analyzer
+
+
+
+%% how about program advice, i.e. aspect oriented programming? Should
+%% we instrument +Belief. ?
+
+
+
+%% %% FIXME: NOT YET FINISHED (the sayer api stuff)
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/sayer_api.pl
+
+%% sayerExecuteCodeOnData([dbName('sayer_test'),codeRef('sub {}'),code(Code),codeID(CodeID)],Results).
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/sayer2_api.pl
+
+%% sayer2ExecuteCodeOnData([dbName('sayer2_test'),codeRef('sub {}'),code(Code),codeID(CodeID)],Results).
+
+
+
+
+%% /var/lib/myfrdcsa/codebases/minor/iaec
+
+%% /var/lib/myfrdcsa/codebases/minor/iaec/perl/attempts/1
+
+%% /var/lib/myfrdcsa/codebases/minor/iaec/perl/attempts/2/process.pl
+
+
+%% /var/lib/myfrdcsa/codebases/minor/iaec/systems

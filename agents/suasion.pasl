@@ -1,0 +1,24 @@
+:- module('suasion',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('argument'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/argument.pasl')]).
+
+sourcedFrom('suasion').
+
++!run(suasion,Arguments,_Output) <-
+	%% argt(Arguments,[]);
+	+goal(persuade('<PERSON1>','<PERSON2>',test1)).
+
+%% in Argumentation in Artificial Intelligence, see chapter 14 "Models of Persuasive Dialog"
+
++goal(persuade(Agent1,Agent2,Conclusion)) <-
+	%% !argument(validate(Conclusion));
+	true.
+
+%% Have the ability to invoke the LLM, WebAgent, and also the Argument
+%% system.
+
++!ensureNotPromosm(Content) <-
+	true.
