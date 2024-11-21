@@ -1,0 +1,3 @@
+%% /var/lib/myfrdcsa/codebases/minor/prompt-library/data-git/prompts/flp/reprioritize_schedule.tt
+
+%% generatePageFor(calendar,admin,[],Results).

@@ -1,0 +1,12 @@
+:- module('clamav',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
++!update_freshclam <-
+	true.
+
++!clamscan(Filename) <-
+	true.
+
++!clamscan(Filenames) <-
+	true.
+

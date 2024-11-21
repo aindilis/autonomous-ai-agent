@@ -1,0 +1,157 @@
+:- module(freeLifePlannerIntake, []).
+
+:- spami_load_library([name(util1), file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_library([name(llmQuery), file('/path/to/llm_query.pasl')]).
+
++!runIntake(UserID, Output) <-
+	!initializeSession(UserID);
+	!gatherBasicInfo(UserID);
+	!assessImmediateNeeds(UserID);
+	!gatherDetailedInfo(UserID);
+	!assessAdditionalChallenges(UserID);
+	!generateResourcePlan(UserID);
+	!dumpOutput(Output).
+
++!initializeSession(UserID) <-
+	!askLLM(explainPrivacy, [
+				 "Welcome to the Free Life Planner. Your privacy and security are our top priorities.",
+				 "Sensitive information will be stored locally on your device and encrypted.",
+				 "We only use provided information to connect you with appropriate resources.",
+				 "You can choose not to answer any question you're not comfortable with.",
+				 "Do you understand and wish to proceed?"
+				], Response);
+	!processResponse(Response, UserID).
+
++!gatherBasicInfo(UserID) <-
+	!askMultipleChoice(UserID, "Which of the following broad categories apply to your current situation? You can select multiple options.", 
+			   [generalChallenges, disability, limitedMeans, healthIssues, unhoused, returningCitizen, victimOfViolence, immigrantOrRefugee, disasterAffected, other], Categories);
+	!askLocation(UserID, Location);
+	!askOpenEnded(UserID, "Briefly describe your current living situation.", LivingSituation);
+	+basicInfo(UserID, [Categories, Location, LivingSituation]).
+
++!assessImmediateNeeds(UserID) <-
+	!askYesNo(UserID, "Do you have a safe place to sleep tonight?", HasShelter);
+	!askYesNo(UserID, "Do you have access to food for the next 24 hours?", HasFood);
+	!askYesNo(UserID, "Do you need immediate medical attention?", NeedsMedical);
+	!askYesNo(UserID, "Are you currently in any immediate danger?", InDanger);
+	+immediateNeeds(UserID, [HasShelter, HasFood, NeedsMedical, InDanger]);
+	!handleImmediateNeeds(UserID, [HasShelter, HasFood, NeedsMedical, InDanger]).
+
++!gatherDetailedInfo(UserID) <-
+	?basicInfo(UserID, [Categories, _, _]);
+	!gatherFinancialInfo(UserID, Categories);
+	!gatherHealthInfo(UserID, Categories);
+	!gatherHousingInfo(UserID, Categories);
+	!gatherLegalInfo(UserID, Categories);
+	!gatherSafetyInfo(UserID, Categories);
+	!gatherImmigrationInfo(UserID, Categories);
+	!gatherDisasterInfo(UserID, Categories);
+	!gatherSupportSystemInfo(UserID);
+	!gatherEmploymentInfo(UserID);
+	!gatherEducationInfo(UserID).
+
++!gatherFinancialInfo(UserID, Categories) <-
+	if(member(limitedMeans, Categories),
+	   (   !askOpenEnded(UserID, "What financial resources do you currently have available?", FinancialResources);
+	       !askYesNo(UserID, "Are you currently receiving any form of financial assistance?", ReceivingAssistance);
+	       !askOpenEnded(UserID, "What are your most pressing financial concerns?", FinancialConcerns)),
+	   (   FinancialResources = notApplicable, ReceivingAssistance = notApplicable, FinancialConcerns = notApplicable));
+	+financialInfo(UserID, [FinancialResources, ReceivingAssistance, FinancialConcerns]).
+
++!gatherHealthInfo(UserID, Categories) <-
+	if(member(healthIssues, Categories),
+	   (   !askOpenEnded(UserID, "What health issues are you currently facing?", HealthIssues);
+	       !askYesNo(UserID, "Do you have access to necessary medications?", HasMedications);
+	       !askYesNo(UserID, "Do you have health insurance?", HasInsurance);
+	       !askOpenEnded(UserID, "What healthcare-related challenges are you experiencing?", HealthcareChallenges)),
+	   (   HealthIssues = notApplicable, HasMedications = notApplicable, HasInsurance = notApplicable, HealthcareChallenges = notApplicable));
+	+healthInfo(UserID, [HealthIssues, HasMedications, HasInsurance, HealthcareChallenges]).
+
++!gatherHousingInfo(UserID, Categories) <-
+	if(member(unhoused, Categories),
+	   (   !askOpenEnded(UserID, "How long have you been without stable housing?", HomelessDuration);
+	       !askOpenEnded(UserID, "What challenges are you facing in finding housing?", HousingChallenges)),
+	   (   HomelessDuration = notApplicable, HousingChallenges = notApplicable));
+	+housingInfo(UserID, [HomelessDuration, HousingChallenges]).
+
++!gatherLegalInfo(UserID, Categories) <-
+	if(member(returningCitizen, Categories),
+	   (   !askOpenEnded(UserID, "What legal challenges are you currently facing?", LegalChallenges);
+	       !askYesNo(UserID, "Do you need assistance with reintegration services?", NeedsReintegration)),
+	   (   LegalChallenges = notApplicable, NeedsReintegration = notApplicable));
+	+legalInfo(UserID, [LegalChallenges, NeedsReintegration]).
+
++!gatherSafetyInfo(UserID, Categories) <-
+	if(member(victimOfViolence, Categories),
+	   (   !askYesNo(UserID, "Are you currently in a safe environment?", InSafeEnvironment);
+	       !askYesNo(UserID, "Do you need assistance with protective services?", NeedsProtection);
+	       !askOpenEnded(UserID, "What safety concerns do you have?", SafetyConcerns)),
+	   (   InSafeEnvironment = notApplicable, NeedsProtection = notApplicable, SafetyConcerns = notApplicable));
+	+safetyInfo(UserID, [InSafeEnvironment, NeedsProtection, SafetyConcerns]).
+
++!gatherImmigrationInfo(UserID, Categories) <-
+	if(member(immigrantOrRefugee, Categories),
+	   (   !askOpenEnded(UserID, "What is your current immigration status?", ImmigrationStatus);
+	       !askYesNo(UserID, "Do you need assistance with immigration services?", NeedsImmigrationHelp);
+	       !askOpenEnded(UserID, "What challenges are you facing related to your immigration status?", ImmigrationChallenges)),
+	   (   ImmigrationStatus = notApplicable, NeedsImmigrationHelp = notApplicable, ImmigrationChallenges = notApplicable));
+	+immigrationInfo(UserID, [ImmigrationStatus, NeedsImmigrationHelp, ImmigrationChallenges]).
+
++!gatherDisasterInfo(UserID, Categories) <-
+	if(member(disasterAffected, Categories),
+	   (   !askOpenEnded(UserID, "What type of disaster have you been affected by?", DisasterType);
+	       !askOpenEnded(UserID, "What immediate needs do you have related to the disaster?", DisasterNeeds);
+	       !askYesNo(UserID, "Have you registered for any disaster relief services?", RegisteredForRelief)),
+	   (   DisasterType = notApplicable, DisasterNeeds = notApplicable, RegisteredForRelief = notApplicable));
+	+disasterInfo(UserID, [DisasterType, DisasterNeeds, RegisteredForRelief]).
+
++!gatherSupportSystemInfo(UserID) <-
+	!askYesNo(UserID, "Do you have a support system of family or friends?", HasSupportSystem);
+	!askOpenEnded(UserID, "What types of support do you feel you need most right now?", SupportNeeded);
+	+supportInfo(UserID, [HasSupportSystem, SupportNeeded]).
+
++!gatherEmploymentInfo(UserID) <-
+	!askMultipleChoice(UserID, "What is your current employment status?", 
+			   [employed, unemployed, underemployed, unableToWork], EmploymentStatus);
+	!askOpenEnded(UserID, "What skills or work experience do you have?", Skills);
+	!askOpenEnded(UserID, "What employment-related challenges are you facing?", EmploymentChallenges);
+	+employmentInfo(UserID, [EmploymentStatus, Skills, EmploymentChallenges]).
+
++!gatherEducationInfo(UserID) <-
+	!askMultipleChoice(UserID, "What is your highest level of education?", 
+			   [noFormalEducation, primary, secondary, someCollege, bachelor, graduate], EducationLevel);
+	!askYesNo(UserID, "Are you interested in furthering your education?", InterestedInEducation);
+	!askOpenEnded(UserID, "What educational challenges are you facing?", EducationChallenges);
+	+educationInfo(UserID, [EducationLevel, InterestedInEducation, EducationChallenges]).
+
++!assessAdditionalChallenges(UserID) <-
+	!askOpenEnded(UserID, "Are there any other challenges or concerns you'd like to share?", AdditionalChallenges);
+	!askMultipleChoice(UserID, "Do you face challenges related to any of the following? Select all that apply.", 
+			   [mentalHealth, substanceUse, discrimination, languageBarriers, transportation, childcare, elderCare, debtManagement, technologicalLiteracy, other], SpecificChallenges);
+	+additionalChallengesInfo(UserID, [AdditionalChallenges, SpecificChallenges]).
+
+% Generate resource plan
++!generateResourcePlan(UserID) <-
+	!gatherAllInfo(UserID, AllInfo);
+	!askLLM(generateComprehensivePlan, AllInfo, Plan);
+	!presentPlan(UserID, Plan).
+
+% Helper plans (unchanged from previous version)
+
++!gatherAllInfo(UserID, AllInfo) <-
+	?basicInfo(UserID, BasicInfo);
+	?immediateNeeds(UserID, ImmediateNeeds);
+	?financialInfo(UserID, FinancialInfo);
+	?healthInfo(UserID, HealthInfo);
+	?housingInfo(UserID, HousingInfo);
+	?legalInfo(UserID, LegalInfo);
+	?safetyInfo(UserID, SafetyInfo);
+	?immigrationInfo(UserID, ImmigrationInfo);
+	?disasterInfo(UserID, DisasterInfo);
+	?supportInfo(UserID, SupportInfo);
+	?employmentInfo(UserID, EmploymentInfo);
+	?educationInfo(UserID, EducationInfo);
+	?additionalChallengesInfo(UserID, AdditionalChallenges);
+	AllInfo = [BasicInfo, ImmediateNeeds, FinancialInfo, HealthInfo, HousingInfo, LegalInfo, SafetyInfo, ImmigrationInfo, DisasterInfo, SupportInfo, EmploymentInfo, EducationInfo, AdditionalChallenges].
+
+% ... (other helper plans remain the same)

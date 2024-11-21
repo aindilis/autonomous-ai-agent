@@ -3,16 +3,16 @@
 
 :- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
 
-:- spami_load_library([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+%% :- spami_load_library([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+
+:- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+
 
 %% see also
 %% /var/lib/myfrdcsa/codebases/minor/sentinel/agentspeak/spami/sentinel_inotify.pl
 %% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prolog/sentinel.pl
 
-%% Sentinel needed to receive messages from UniLang in order to be
-%% invoked by the air-gapped/sentinel-network-monitor system. It
-%% should then invoke remote execution, scp or rsync or something to
-%% get files onto the main computer.
+%% <REDACTED>
 
 sourcedFrom('/var/lib/myfrdcsa/codebases/minor/sentinel/agentspeak/sentinel.pasl').
 sourcedFrom('/var/lib/myfrdcsa/codebases/minor/sentinel/scripts/sentinel').
@@ -20,13 +20,16 @@ sourcedFrom('/var/lib/myfrdcsa/codebases/minor/vger2/vger2.pl').
 
 hasDistinctModesOfOperation(sentinel,[inotify2,unilangAndInotify2,systemize]).
 
-hasMode(sentinel,inotify2).
+%% hasMode(sentinel,inotify2).
+
+hasMode(sentinel,systemize).
 
 +!run(sentinel,Arguments,Ouptut) <-
 	setDebug(off);
 	list_plans(_);
 	sentinel_main.
-	%% !sentinelAnalyze(['/home/andrewdo/todo-20221115.pdf'],Output).
+
+%% !sentinelAnalyze(['<FILE>'],Output).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -52,7 +55,7 @@ hasMode(sentinel,inotify2).
 	?isa(File,pdfDocument);
 	!sentinelAnalyze(Rest,Beliefs2).
 
-+?isa(A,pdfDocument) <-
+?isa(A,pdfDocument) <-
 	?hasMIMEType(A,'application/pdf');
 	?hasExtension(A,pdf);
 	+isa(A,pdfDocument);
@@ -67,9 +70,9 @@ hasMode(sentinel,inotify2).
 	
 	%% use cases.
 
-	%% 1> Rex into <SYSTEM1> and retrieve everything.
+	%% 1> Rex into <HOST> and retrieve everything.
 
-	%% 2> just go over everything on <SYSTEM2> system, but make it plug
+	%% 2> just go over everything on <HOST> system, but make it plug
 	%% and play so that it can use Rex independently.
 
 	true.
@@ -110,13 +113,23 @@ hasMode(sentinel,inotify2).
 
 %% %% 6. Link extraction: This operation extracts links from text files in a specified format (PDF and text files) for further analysis.
 
-%% %% 7. KBFS integration: This operation integrates the Keyword Binding Framework System (KBFS) for searching and retrieving relevant documents based on file IDs.
+%% %% 7. KBFS integration: This operation integrates the Knowledge-Based File System (KBFS) for searching and retrieving relevant documents based on file IDs.
+
+%% hasValue(<TYPE>,'<DIRECTORY>').
 
 featureRequest('Sentinel or DigiLib should be able to search our filesystems, with KBFSs help, and locate all papers and other research dcouments and either replace them with a link to the proper DigiLib location, or DigiLib linking outward. Probably the prior is better.').
+
 featureRequest('I should be able to write notes on files and stuff, and sentinel reads and acts on those. For instance, "Please add this URL to the POSI philanthropists file"').
+
 featureRequest('It should take our files that we download, like random websites, and put them where they should go, either this or KBFS::Systemize::Index').
-featureRequest('sentinel should be triggered/activated whenever an internet connection from <SYSTEM2> to <SYSTEM1> is restored, and it should pull down, similar to both-data-diode, the important data, including any new pdf downloads, and anything in the outgoing such as memes, git repos, and random files. Then when they are all safely on our system <SYSTEM1>, we can then distribute them appropriately within our systems with more sentinel logic.').
 
-%% /home/andrewdo/perl5/perlbrew/perls/perl-5.28.1_WITH_THREADS/lib/site_perl/5.28.1/KBFS/Systemize/Index.pm
+featureRequest('sentinel should be triggered/activated whenever an internet connection from <HOST> to <HOST> is restored, and it should pull down, similar to both-data-diode, the important data, including <DATA_TYPE>, new pdf downloads, and anything in the outgoing such as memes, git repos, and random files. Then when they are all safely on our system <HOST>2, we can then distribute them appropriately with more sentinel logic. Set up <REDACTED> to do this. <FILENAME>').
 
-featureRequest('Perhaps use some combination of softbot1, iaec, setanta-agent, agent-smith and sentinel to automatically go into a remote system such as <SYSTEM2>, and extract useful information from it.').
+featureRequest('Perhaps use some combination of softbot1, iaec, setanta-agent, agent-smith and sentinel to automatically go into a remote system such as <HOST>, and extract useful information from it.').
+
+featureRequest('Also have it go into <DIRECTORY> and have it reorganize all of that stuff into the right places.').
+
+featureRequest('copy GIT repos from <DIRECTORY>/<N>/git etc to proper location in /var/lib/myfrdcsa/repositories/external/git, external, sandbox etc.').
+
+
+%% need to look at /var/lib/myfrdcsa/codebases/minor/indigolog-frdcsa

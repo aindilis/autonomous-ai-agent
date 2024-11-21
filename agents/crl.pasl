@@ -1,0 +1,207 @@
+:- module('crl',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+%% constant-reprioritization-loop
+
+%% SEE ALSO:
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/llms.pl
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl
+
++!run(crl,_Arguments,_Output) <-
+	%% setDebug(on);
+	!doCRLMainLoop.
+
++!doCRLMainLoop <-
+	%% !initializeCRL;
+	!crlCycle.
+
++!initializeCRL <-
+	!ensureSPSE2FormalogRunning.
+
++!ensureSPSE2FormalogRunning <-
+	.query_agent_bindings(spse2,localhost,once(hasTruthValue(formalogModuleLoaded(spse2Formalog),true)),Result);
+	!dump([result,Result]).
+
+%% CRL cycle main plan
++!crlCycle <-
+	!observe(State, TodoItems);
+	!dump([todoItems,TodoItems]);
+	!orient(State, TodoItems, PrioritizedItems);
+	!decide(PrioritizedItems, ActiveGoals);
+	!act(ActiveGoals, CompletedTasks).
+
+%% !evaluate(CompletedTasks, PerformanceScore);
+%% !adjustPolicy(PerformanceScore);
+%% !updateSystems(CompletedTasks);
+%% !crlCycle.
+
+
+%% Observe phase
++!observe(State, TodoItems) <-
+	%% !getStateRepresentation(State);
+	!importTodoItems(TodoItems).
+
+%% Orient phase
++!orient(State, TodoItems, PrioritizedItems) <-
+	!reprioritizeTodoItems(State, TodoItems, PrioritizedItems).
+
+%% %% Decide phase
++!decide(PrioritizedItems, ActiveGoals) <-
+	!selectActiveGoals(PrioritizedItems, ActiveGoals).
+
+%% %% Act phase
++!act(ActiveGoals, CompletedTasks) <-
+	!completeTasks(ActiveGoals, CompletedTasks).
+
+%% %% Evaluate phase
+%% +!evaluate(CompletedTasks, PerformanceScore) <-
+%% 	!assessPerformance(CompletedTasks, PerformanceScore).
+
+%% %% Adjust policy phase
+%% +!adjustPolicy(PerformanceScore) <-
+%% 	!updatePolicy(PerformanceScore).
+
+%% %% Update systems phase
+%% +!updateSystems(CompletedTasks) <-
+%% 	!updateDoSystem(CompletedTasks);
+%% 	!updateSPSE2System(CompletedTasks).
+
+%% Helper plans
++!getStateRepresentation([noWorldStateDocumentedAtThisTime]) <-
+	%% .getAllAssertionsForFileConvertFacts('<WORLDSTATE_FILE>',State);
+	!dump([state,State]).
+
++!importTodoItems(TodoItems) <-
+	!importSPSE2TodoItems(TodoItems).
+
+%% !importDoTodoItems(DoTodoItems);
+%% append(DoTodoItems, SPSE2TodoItems, TodoItems).
+%% TodoItems = SPSE2TodoItems.
+
+%% +!importDoTodoItems(DoTodoItems) <-
+%% 	%% Implement importing to-do list items from "Do"
+%% 	DoTodoItems = [].
+
++!importSPSE2TodoItems(SPSE2TodoItems) <-
+	%% Context = '<CONTEXT>';
+	!getUGraphForContext(Context,Results);
+	argt(Results,[uGraph(UGraph),assertions(Assertions)]);
+	!getImmediateNextSteps(UGraph,NextSteps);
+	findall('has-NL'(NextStep,NL),
+		(   
+		    member(NextStep,NextSteps),
+		    member('has-NL'(NextStep,NL),Assertions)
+		),HasNL);
+	!dump([hasNL,HasNL]);
+	findall(NL,member('has-NL'(_,NL),HasNL),SPSE2TodoItems).
+
++!reprioritizeTodoItems(State, TodoItems, PrioritizedItems) <-
+	!extractHighPriorityTasks([noWorldStateDocumentedAtThisTime], TodoItems, HighPriorityTasks);
+	PrioritizedItems = HighPriorityTasks.
+%% !extractShortTermTasks(TodoItems, ShortTermTasks);
+%% !mergePrioritizedTasks(HighPriorityTasks, ShortTermTasks, PrioritizedItems).
+
++!extractHighPriorityTasks(State, TodoItems, HighPriorityTasks) <-
+	%% Implement extracting the highest priority unresolved tasks/goals from each planning context
+	append([['Consider the following world state: < < < '],
+		State,
+		[' > > >. ',
+		 %% 'Please take this to-do list, and reprioritize it based on which are the highest priority unresolved tasks/goals for the following world state: < < < '
+		 'Please take this to-do list, and even though there is not really enough information provided, nevertheless attempt to reprioritize it based on which are the highest priority unresolved tasks/goals for the following world state, outputting only the list itself (as an unordered, HTML list) and no analysis or justification of the list: < < < '
+		],
+		TodoItems,
+		[' > > >.']],
+	       Ask);
+	!askLLMListAndGetResult(Ask,HighPriorityTasks);
+	!dump([highPriorityTaskList,HighPriorityTasks]).
+
+%% +!extractShortTermTasks(TodoItems, ShortTermTasks) <-
+%% 	%% Implement extracting short-term tasks from the to-do list
+%% 	!dotDotDot.
+
+%% +!mergePrioritizedTasks(HighPriorityTasks, ShortTermTasks, PrioritizedItems) <-
+%% 	%% Implement merging the high-priority and short-term task lists
+%% 	!dotDotDot.
+
++!selectActiveGoals(PrioritizedItems, ActiveGoals) <-
+	%% Implement user selection of active goals from the top-prioritized items
+	%% extract this output into a list, and ask the user to select from among them.
+	!subsetSelect([set(PrioritizedItems),selection([])],Results);
+	argt(Results,[results(ActiveGoals)]);
+	!dump([activeGoals,ActiveGoals]).
+
+%% +!completeTasks(ActiveGoals, CompletedTasks) <-
+%% 	%% Implement tracking and updating of completed tasks
+%% 	!dotDotDot.
+
+%% +!assessPerformance(CompletedTasks, PerformanceScore) <-
+%% 	%% Implement evaluation of user's performance based on completed tasks
+%% 	!dotDotDot.
+
+%% +!updatePolicy(PerformanceScore) <-
+%% 	%% Implement adjustment of policy based on performance score
+%% 	!dotDotDot.
+
+%% +!updateDoSystem(CompletedTasks) <-
+%% 	%% Implement updating the "Do" system with completed tasks
+%% 	!dotDotDot.
+
+%% +!updateSPSE2System(CompletedTasks) <-
+%% 	%% Implement updating the "SPSE2" system with completed tasks
+%% 	!dotDotDot.
+
+
+%% +!dotDotDot <-
+%% 	true.
+
+%% FIXME: This needs to find all terminal nodes first
+
++!getImmediateNextSteps(UGraph,NextSteps) <-
+	top_sort(UGraph, Sort);
+	reverse(Sort,NextSteps).
+
++!getUGraphForContext(Context,[uGraph(UGraph),assertions(Assertions)]) <-
+	!getSPSE2FormalogAssertions(Context,Assertions);
+	!dump([assertions,Assertions]);
+	.findall(Goal,member(goal(Goal),Assertions),Verticies);
+	!dump([verticies,Verticies]);
+	.findall('-'(Goal1,Goal2),member(depends(Goal1,Goal2),Assertions),Edges);
+	!dump([edges,Edges]);
+	.vertices_edges_to_ugraph(Vertices,Edges,UGraph);
+	!dump([ugraph,UGraph]).
+
+%% +!getSPSE2ContextDescriptions(Term) <-
+%% 	.shell_command_to_string('spse2 -L -S date -o prolog',Atom);
+%% 	.read_term_from_atom(Atom,Term,[]).
+
++!getSPSE2FormalogAssertions(Context,Assertions) <-
+	%% %% FIXME: have the user execute ensure_only_loaded('<CONTEXT>'). in SPSE2-Formalog-REPL 
+	%% .query_agent_bindings(spse2,localhost,Context,ensure_only_loaded(Context),_);
+	.query_agent_bindings(spse2,localhost,Assertion,holds(Context,Assertion),Assertions).
+
+%% %% One neat idea I just had would be to have the option to consider
+%% %% only the <DATE>::<TOPIC> SPSE2 contexts. Also, perhaps have a
+%% %% function which says, consider any spse2 created on or after a given
+%% %% starting date. Also, have the ability to scour through all planning
+%% %% contexts (or just dated ones), and identify the highest priority
+%% %% unresolved tasks/goals from each context, and bring them forward,
+%% %% so that we don't drop the ball on any tasks. We could also do
+%% %% something similar with our to.do files. Kinda like hierarchical
+%% %% summarization. So we would have a large list of important (long
+%% %% term) tasks. We could also keep a list of all short term tasks. We
+%% %% could independently reprioritize, then merge, these two or more
+%% %% task lists. We also have to find where we left off integrating all
+%% %% our to.do list systems, and pull the integrated data. I forgot the
+%% %% rest of what I was going to say or do here.
+
+%% %% Another idea I just had, maybe develop an interface so that we
+%% %% generate intermediate plans, and evaluate them against WOPR for
+%% %% adversarial/contingent robustness. But that belongs in a more
+%% %% advanced agent, not the basic CRL agent.
+
+%% %% Another feature, is that the system can argue with the user about
+%% %% why they should prioritize a particular task, with both sides being
+%% %% flexible

@@ -5,12 +5,14 @@
 
 
 %% See 'Argumentation in Artificial Intelligence' chapter 14 on
-%% p.g. 281/295. This document outlines various types of arguemntation
+%% p.g. 281. This document outlines various types of argumentation
 %% that one can do in a persuasive dialog context. It includes some
 %% performatives.
 
 
 
+%% some tips. Have it have special things engage, like special prompts
+%% for different acts, like setting boundaries, e.g. "use I statements".
 
 
 %% Helper plans
@@ -22,3 +24,100 @@
 
 
 %% Breadth First Search
+
++!run(argument,[]) <-
+	!iterate_over([[a],[b],[c],[d]],[call(capitalize)],Results);
+	write_list(Results).
+
++!run(argument,_Arguments,_Output) <-
+	!getInitialPolemics(Polemic);
+	!dump(Polemic);
+	+polemic(Polemic);
+	!argumentMainLoop.
+
++!getInitialPolemic(Polemic) <-
+	!queryFLP(state:fluents_for_module(state,AllAssertedKnowledge),Results);
+	with_output_to(atom(Polemic),write_term(Results,[quoted(true)])).
+
++!argumentMainLoop <-
+	findall(Polemic,belief(polemic(Polemic),_),Polemics);
+	!process_head(Polemics).
+
+
+
+%% FIXME: Finish conversion from copy/pasted WOPR code to Argument.pasl
+
++!process_head([Polemic|_]) <-
+	!getThreats(Polemic,Threats);
+	!sortThreatsBySeriousness(Polemic,Threats,SortedThreats);
+	!dump([sortedThreats,SortedThreats]);
+	forall(member(SortedThreat,SortedThreats),
+	       (   
+		   solve(!dump([sortedThreat,SortedThreat])),
+		   solve(!generateContingencyPlansForSortedThreat(Polemic,SortedThreat,ContingencyPlans)),
+		   solve(!dump([sortedThreat,SortedThreat,contingencyPlans,ContingencyPlans])),
+		   forall(member(ContingencyPlan,ContingencyPlans),
+			  (
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan])),
+			   solve(!getLikelyEffectsOfContingencyPlan(Polemic,SortedThreat,ContingencyPlan,LikelyEffects)),
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan,likelyEffects,LikelyEffects])),
+			   solve(!applyLikelyEffectsToPolemic(Polemic,SortedThreat,ContingencyPlan,LikelyEffects,NewPolemic)),
+			   solve(!dump([newPolemic,NewPolemic])),
+			   solve(+polemic(NewPolemic))
+			  )
+			 )
+	       )
+	      );
+	!removeBelief(polemic(Polemic),[source(self)]);
+	!argumentMainLoop.
+
+%% LLM plans
+
++!getThreats(Polemic,Threats) <-
+	.print('Getting threats...');
+	!askLLMList(['Consider the following world state: < < < ',
+		     Polemic,
+		     ' > >. > ',
+		     'Please create a threat list of threats to our well-being based on this current world state, ordrered by and including their importance, urgency, likelihood and impact: '
+		    ],
+		    Threats).
+
++!sortThreatsBySeriousness(Polemic,Threats,SortedThreats) <-
+	.print('Sorting threats...');
+	!render_list(Threats,ThreatsString);
+	!askLLMList(['Consider the following world state and associated threats: ',
+		     '< < < Polemic: ',Polemic,' > > > : ',
+		     '< < < Threats: ',ThreatsString,' > > >. ',
+		     'Please sort the list of threats in terms of seriousness, ordered by and including importance, urgency, likelihood and impact: '
+		     ],SortedThreats).
+
+%% Also, eventually, generate here the predicting, monitoring,
+%% mitigating, and managing plans, not just contingency plans.
+
++!generateContingencyPlansForSortedThreat(Polemic,SortedThreat,ContingencyPlans) <-
+	.print('Generating contingency plans...');
+	!askLLMList(['Consider the following world state and associated threat: ',
+		     '< < < Polemic: ',Polemic,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > >. ',
+		     'Please generate a list of potential contingency plans that would be an appropriate response to this particular threat in this situation: '
+		     ],ContingencyPlans).
+
++!getLikelyEffectsOfContingencyPlan(Polemic,SortedThreat,ContingencyPlan,LikelyEffects) <-
+	.print('Getting likely effects...');
+	!askLLMList(['Consider the following world state and associated plan: ',
+		     '< < < Polemic: ',Polemic,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > >. ',
+		     'Please generate an ordered list of effects that executing the plan would have on the world state: '
+		    ],LikelyEffects).
+
++!applyLikelyEffectsToPolemic(Polemic,SortedThreat,ContingencyPlan,LikelyEffects,NewPolemic) <-
+	.print('Applying likely effects...');
+	!render_list(LikelyEffects,LikelyEffectsString);
+	!askLLMConcat(['Consider the following world state and effects of a plan: ',
+		     '< < < World State: ',Polemic,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > > : ',
+		     '< < < Effects : ',LikelyEffectsString,' > > >. ',
+		     'Please generate the new world state that results from applying these effects to the world state: '
+		    ],NewPolemic).

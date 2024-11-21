@@ -1,0 +1,149 @@
+:- module('wopr2',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+%% (there can be some changes made to WOPR. It should stick to a
+%%  pure Prolog state representation, and maybe a text component
+%%  too. But it should specifically come up with add/subtract lists
+%%  for fluents. It should pass in as much state, or at least, the
+%%  most important or relevant state first. So for instance,
+%%  consider the question, what should <PERSON> do if <PERSON> gets
+%%  in a car accident? etc.)
+
+%% (Be sure to convert to template toolkit)
+
+%% Helper plans
+
+%% FIXME: Attempt to resolve iterate_over or then REDO iterate_over as
+%% Prolog instead of AgentSpeak
+
+%% !iterate_over(SortedThreats,[worldState(WorldState),
+
+
+%% Breadth First Search
+
+%% +!run(wopr2,[]) <-
+%% 	!iterate_over([[a],[b],[c],[d]],[call(capitalize)],Results);
+%% 	write_list(Results).
+
+%% +!run(wopr2,_Arguments,_Output) <-
+%% 	setDebug(off);
+%% 	!getInitialWorldState(WorldState);
+%% 	!dump(WorldState);
+%% 	+worldState(WorldState);
+%% 	!wopr2MainLoop.
+
++!run(wopr2,_Arguments,_Output) <-
+	setDebug(off);
+	!getInitialWorldStates(WorldStates);
+	!dump(WorldStates);
+	forall(member([WorldState|Rest],WorldStates),
+	       (
+		view([worldState,WorldState]),
+	        solve(+worldState(WorldState))
+	       ));
+	!wopr2MainLoop.
+
++!getInitialWorldState(WorldState) <-
+	!queryFLP(state:fluents_for_module(state,AllAssertedKnowledge),Results);
+	with_output_to(atom(WorldState),write_term(Results,[quoted(true)])).
+
+%% +!getInitialWorldState(WorldState) <-
+%% 	!queryFLP(once(getUngroundedContingencies(Contingency)),Results);
+%% 	with_output_to(atom(WorldState),write_term(Results,[quoted(true)])).
+
++!getInitialWorldStates(WorldStates) <-
+	!queryFLP(once(getUngroundedContingencies(Contingency)),Results);
+	!dump([results,Results]);
+	Results = [[WorldStates]];
+	!dump([worldStates,WorldStates]).
+
++!wopr2MainLoop <-
+	findall(WorldState,belief(worldState(WorldState),_),WorldStates);
+	!process_head(WorldStates).
+
+%% FIXME: WOPR needs to also come up with or deal with more common
+%% threats that affect everyone. For instance, we're based in
+%% <LOCATION>. So it should naturally create contingency plans for what
+%% to do about cold weather, especially power outages and things that
+%% affect heating the house. But Mistral Instruct 7B isn't really
+%% detailed or accurate enough, we need GPT-4.
+
++!process_head([WorldState|_]) <-
+	!getThreats(WorldState,Threats);
+	!sortThreatsBySeriousness(WorldState,Threats,SortedThreats);
+	!dump([sortedThreats,SortedThreats]);
+	forall(member(SortedThreat,SortedThreats),
+	       (   
+		   solve(!dump([sortedThreat,SortedThreat])),
+		   solve(!generateContingencyPlansForSortedThreat(WorldState,SortedThreat,ContingencyPlans)),
+		   solve(!dump([sortedThreat,SortedThreat,contingencyPlans,ContingencyPlans])),
+		   forall(member(ContingencyPlan,ContingencyPlans),
+			  (
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan])),
+			   solve(!getLikelyEffectsOfContingencyPlan(WorldState,SortedThreat,ContingencyPlan,LikelyEffects)),
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan,likelyEffects,LikelyEffects])),
+			   solve(!applyLikelyEffectsToWorldState(WorldState,SortedThreat,ContingencyPlan,LikelyEffects,NewWorldState)),
+			   solve(!dump([newWorldState,NewWorldState])),
+			   solve(+worldState(NewWorldState))
+			  )
+			 )
+	       )
+	      );
+	!removeBelief(worldState(WorldState),[source(self)]);
+	!wopr2MainLoop.
+
+%% FIXME: Update this (and process_head/2) with the LLM plans from:
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/wopr/wopr_new.pasl
+
+%% LLM plans
+
++!getThreats(WorldState,Threats) <-
+	.print('Getting threats...');
+	!askLLMList(['Consider the following world state: < < < ',
+		     WorldState,
+		     ' > > >. ',
+		     'Please create a threat list of threats to our well-being based on this current world state, ordrered by and including their importance, urgency, likelihood and impact: '
+		    ],
+		    Threats).
+
++!sortThreatsBySeriousness(WorldState,Threats,SortedThreats) <-
+	.print('Sorting threats...');
+	!render_list(Threats,ThreatsString);
+	!askLLMList(['Consider the following world state and associated threats: ',
+		     '< < < WorldState: ',WorldState,' > > > : ',
+		     '< < < Threats: ',ThreatsString,' > > >. ',
+		     'Please sort the list of threats in terms of seriousness, ordered by and including importance, urgency, likelihood and impact: '
+		     ],SortedThreats).
+
+%% Also, eventually, generate here the predicting, monitoring,
+%% mitigating, and managing plans, not just contingency plans.
+
++!generateContingencyPlansForSortedThreat(WorldState,SortedThreat,ContingencyPlans) <-
+	.print('Generating contingency plans...');
+	!askLLMList(['Consider the following world state and associated threat: ',
+		     '< < < WorldState: ',WorldState,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > >. ',
+		     'Please generate a list of potential contingency plans that would be an appropriate response to this particular threat in this situation: '
+		     ],ContingencyPlans).
+
++!getLikelyEffectsOfContingencyPlan(WorldState,SortedThreat,ContingencyPlan,LikelyEffects) <-
+	.print('Getting likely effects...');
+	!askLLMList(['Consider the following world state and associated plan: ',
+		     '< < < WorldState: ',WorldState,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > >. ',
+		     'Please generate an ordered list of effects that executing the plan would have on the world state: '
+		    ],LikelyEffects).
+
++!applyLikelyEffectsToWorldState(WorldState,SortedThreat,ContingencyPlan,LikelyEffects,NewWorldState) <-
+	.print('Applying likely effects...');
+	!render_list(LikelyEffects,LikelyEffectsString);
+	!askLLMConcat(['Consider the following world state and effects of a plan: ',
+		     '< < < World State: ',WorldState,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > > : ',
+		     '< < < Effects : ',LikelyEffectsString,' > > >. ',
+		     'Please generate the new world state that results from applying these effects to the world state: '
+		    ],NewWorldState).

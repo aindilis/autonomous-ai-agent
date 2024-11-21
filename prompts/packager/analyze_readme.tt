@@ -1,0 +1,7 @@
+Please consider the following README file contents, and create a to do list for actions that need to be taken in order to complete packaging of the software for Debian:
+
+< < <
+
+[% readmeContents %]
+
+> > >

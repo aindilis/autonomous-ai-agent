@@ -19,8 +19,6 @@ sourcedFrom('/var/lib/myfrdcsa/codebases/internal/architect').
 %% NAVIGATE THE COMPUTER, MANAGE FEATURE SET SEARCHES, ETC
 
 
-%% Asking LLM:
-
 %% What are some functions that one would expect of a program that
 %% curates software and resources to build AI? The system is called
 %% Architect, and it has vast libraries full of software systems,

@@ -1,0 +1,73 @@
+:- module('academician_remote',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_report_fact(atTime([2024-10-16,09:40:40],workingProperly(academician_remote))).
+
+%% Control our academician_remote domain
+
+:- dynamic investigate/1.
+
+%% Load any importables here
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_library([name('freekbs2'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/freekbs2.pasl')]).
+
+%% :- spami_load_agent([name('sieve'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sieve.pasl')]).
+
+:- use_module('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prolog_modules/spami_remote_execution_vagrant.pl').
+
+:- prolog_consult('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prolog/academician_remote.pl').
+
+%% :- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+%% :- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+%% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
+
+%% sourcedFrom(/'var/lib/myfrdcsa/codebases/minor/academician').
+
++!run(academician_remote,_Arguments,_Output) <-
+	%% prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['Org::FRDCSA::Academician::Ionzero']);
+	.initialize_academician;
+	!dump([hola]);
+	!study(andrewdo,Results).
+
+%% FIXME: need internet or corpora access to make any real progress here.
+
++!study(User,Results) <-
+	!dump([heya]);
+	.findall(Topic,belief(desires(User,'know-more-about'(User,Topic)),_),Topics);
+	.findall(Question,belief('has-question'(User,Question),_),Questions);
+	.findall(Document,belief(desires(User,'read-document'(User,Document)),_),Documents);
+	!dump([topics(Topics),questions(Questions),documents(Documents)]);
+	forall(member(Document,Documents),
+	       solve(!academician_remote_investigate(Document)));
+	!dump([result,Result]).
+
++!academician_remote_investigate(Document) <-
+	?isa(Document,manPageBuffername).
+	
++?isa(Document,manPageBuffername) <-
+	regex_atom('^\\*Man (.+)\\*$',[],Document,[Object]);
+	Object \= [];
+	atom_codes(Atom,Object);
+	!dump([atom,Atom]);
+	!read_man_page(Atom,ManPage);
+	!dump([isa(Atom,manPage),isa(Document,manPageBuffername),hasContents(Atom,ManPage)]);
+	+isa(Atom,manPage);
+	+isa(Document,manPageBuffername);
+	+hasContents(Atom,ManPage).
+
++!read_man_page(Atom,ManPage) <-
+	%% PLEASE NOTE THIS RELIES ON WRITING A FILE TO DISK, COULD
+	%% MESS UP SSDs.
+	%% spami_remote_execution_vagrant:do_command_remote(['man',Atom],ManPage).
+	spami_remote_execution_vagrant:do_command_remote(['man',Atom,'|','cat'],ManPage).
+	%% spami_remote_execution_vagrant:do_command_remote([pwd],ManPage).
+
+%% %% Maybe it needs to posit and track questions. "QUESTION ASKER BOT"
+%% !study(academician_remote,[topic(Topic)],Result) <-
+%% 	!askLLMConcat(['What are some good questions that we can ask about: ',Topic],
+%% 		      Result);
+%% 	list_beliefs(_).
+
+
+featureRequest(academician_remote,'Academician and other tools such as web-agent, vger2 etc, could be made to scrape ArXiv daily, and look at historical document collections.').

@@ -1,0 +1,141 @@
+:- module('do_ooda',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+%% Helper plans
+
+%% FIXME: Attempt to resolve iterate_over or then REDO iterate_over as
+%% Prolog instead of AgentSpeak
+
+%% !iterate_over(SortedThreats,[toDoList(ToDoList),
+
+
+%% Breadth First Search
+
+%% +!run(do_ooda,[]) <-
+%% 	!iterate_over([[a],[b],[c],[d]],[call(capitalize)],Results);
+%% 	write_list(Results).
+
+%% +!run(do_ooda,_Arguments,_Output) <-
+%% 	setDebug(off);
+%% 	!getInitialToDoList(ToDoList);
+%% 	!dump(ToDoList);
+%% 	+toDoList(ToDoList);
+%% 	!woprMainLoop.
+
++!run(do_ooda,_Arguments,_Output) <-
+	setDebug(off);
+	!getInitialToDoLists(ToDoLists);
+	!dump(ToDoLists);
+	forall(member([ToDoList|Rest],ToDoLists),
+	       (
+		view([toDoList,ToDoList]),
+	        solve(+toDoList(ToDoList))
+	       ));
+	!doOodaMainLoop.
+
++!getInitialToDoList(ToDoList) <-
+	!queryFLP(state:fluents_for_module(state,AllAssertedKnowledge),Results);
+	with_output_to(atom(ToDoList),write_term(Results,[quoted(true)])).
+
+%% +!getInitialToDoList(ToDoList) <-
+%% 	!queryFLP(once(getUngroundedContingencies(Contingencya)),Results);
+%% 	with_output_to(atom(ToDoList),write_term(Results,[quoted(true)])).
+
++!getInitialToDoLists(ToDoLists) <-
+	!queryFLP(once(getUngroundedContingencies(Contingency)),Results);
+	!dump([results,Results]);
+	Results = [[ToDoLists]];
+	!dump([toDoLists,ToDoLists]).
+
++!doOodaMainLoop <-
+	findall(ToDoList,belief(toDoList(ToDoList),_),ToDoLists);
+	!process_head(ToDoLists).
+
+%% FIXME: Complete transition away from WOPR copy/pasted code.
+
+%% FIXME: WOPR needs to also come up with or deal with more common
+%% threats that affect everyone. For instance, we're based in
+%% <LOCATION>. So it should naturally create contingency plans for what
+%% to do about cold weather, especially power outages and things that
+%% affect heating the house. But Mistral Instruct 7B isn't really
+%% detailed or accurate enough, we need GPT-4.
+
++!process_head([ToDoList|_]) <-
+	!getThreats(ToDoList,Threats);
+	!sortThreatsBySeriousness(ToDoList,Threats,SortedThreats);
+	!dump([sortedThreats,SortedThreats]);
+	forall(member(SortedThreat,SortedThreats),
+	       (   
+		   solve(!dump([sortedThreat,SortedThreat])),
+		   solve(!generateContingencyPlansForSortedThreat(ToDoList,SortedThreat,ContingencyPlans)),
+		   solve(!dump([sortedThreat,SortedThreat,contingencyPlans,ContingencyPlans])),
+		   forall(member(ContingencyPlan,ContingencyPlans),
+			  (
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan])),
+			   solve(!getLikelyEffectsOfContingencyPlan(ToDoList,SortedThreat,ContingencyPlan,LikelyEffects)),
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan,likelyEffects,LikelyEffects])),
+			   solve(!applyLikelyEffectsToToDoList(ToDoList,SortedThreat,ContingencyPlan,LikelyEffects,NewToDoList)),
+			   solve(!dump([newToDoList,NewToDoList])),
+			   solve(+toDoList(NewToDoList))
+			  )
+			 )
+	       )
+	      );
+	!removeBelief(toDoList(ToDoList),[source(self)]);
+	!doOodaMainLoop.
+
+%% FIXME: Update this (and process_head/2) with the LLM plans from:
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/do_ooda/do_ooda_new.pasl
+
+%% LLM plans
+
++!getThreats(ToDoList,Threats) <-
+	.print('Getting threats...');
+	!askLLMList(['Consider the following world state: < < < ',
+		     ToDoList,
+		     ' > > >. ',
+		     'Please create a threat list of threats to our well-being based on this current world state, ordrered by and including their importance, urgency, likelihood and impact: '
+		    ],
+		    Threats).
+
++!sortThreatsBySeriousness(ToDoList,Threats,SortedThreats) <-
+	.print('Sorting threats...');
+	!render_list(Threats,ThreatsString);
+	!askLLMList(['Consider the following world state and associated threats: ',
+		     '< < < ToDoList: ',ToDoList,' > > > : ',
+		     '< < < Threats: ',ThreatsString,' > > >. ',
+		     'Please sort the list of threats in terms of seriousness, ordered by and including importance, urgency, likelihood and impact: '
+		     ],SortedThreats).
+
+%% Also, eventually, generate here the predicting, monitoring,
+%% mitigating, and managing plans, not just contingency plans.
+
++!generateContingencyPlansForSortedThreat(ToDoList,SortedThreat,ContingencyPlans) <-
+	.print('Generating contingency plans...');
+	!askLLMList(['Consider the following world state and associated threat: ',
+		     '< < < ToDoList: ',ToDoList,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > >. ',
+		     'Please generate a list of potential contingency plans that would be an appropriate response to this particular threat in this situation: '
+		     ],ContingencyPlans).
+
++!getLikelyEffectsOfContingencyPlan(ToDoList,SortedThreat,ContingencyPlan,LikelyEffects) <-
+	.print('Getting likely effects...');
+	!askLLMList(['Consider the following world state and associated plan: ',
+		     '< < < ToDoList: ',ToDoList,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > >. ',
+		     'Please generate an ordered list of effects that executing the plan would have on the world state: '
+		    ],LikelyEffects).
+
++!applyLikelyEffectsToToDoList(ToDoList,SortedThreat,ContingencyPlan,LikelyEffects,NewToDoList) <-
+	.print('Applying likely effects...');
+	!render_list(LikelyEffects,LikelyEffectsString);
+	!askLLMConcat(['Consider the following world state and effects of a plan: ',
+		     '< < < World State: ',ToDoList,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > > : ',
+		     '< < < Effects : ',LikelyEffectsString,' > > >. ',
+		     'Please generate the new world state that results from applying these effects to the world state: '
+		    ],NewToDoList).

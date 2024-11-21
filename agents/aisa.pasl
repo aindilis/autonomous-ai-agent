@@ -1,0 +1,223 @@
+:- module('aisa',[]). %% autonomous_iem2_spse2_agent
+
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+%% if
+%% /var/lib/myfrdcsa/codebases/minor/iem/scripts/iem2-is-running-p.pl
+
+%% then get the plan steps
+%% /var/lib/myfrdcsa/codebases/minor/iem/scripts/iem2-client.pl
+
+
+%% Consider a given SPSE2 / IEM2 / PSEx3 task, break it down into
+%% steps and attempt to achieve them, in context
+
+%% +!run(aisa,_Arguments,_Output) <-
+%% 	setDebug(off);
+%% 	!getInitialWorldStates(WorldStates);
+%% 	!dump(WorldStates);
+%% 	forall(member([WorldState|Rest],WorldStates),
+%% 	       (
+%% 		view([worldState,WorldState]),
+%% 	        solve(+worldState(WorldState))
+%% 	       ));
+%% 	!aisaMainLoop.
+
+%% +!getInitialWorldState(WorldState) <-
+%% 	!queryFLP(state:fluents_for_module(state,AllAssertedKnowledge),Results);
+%% 	with_output_to(atom(WorldState),write_term(Results,[quoted(true)])).
+
+%% %% +!getInitialWorldState(WorldState) <-
+%% %% 	!queryFLP(once(getUngroundedContingencies(Contingencya)),Results);
+%% %% 	with_output_to(atom(WorldState),write_term(Results,[quoted(true)])).
+
+%% +!getInitialWorldStates(WorldStates) <-
+%% 	!queryFLP(once(getUngroundedContingencies(Contingency)),Results);
+%% 	!dump([results,Results]);
+%% 	Results = [[WorldStates]];
+%% 	!dump([worldStates,WorldStates]).
+
+%% +!aisaMainLoop <-
+%% 	findall(WorldState,belief(worldState(WorldState),_),WorldStates);
+%% 	!process_head(WorldStates).
+
+%% %% FIXME: WOPR needs to also come up with or deal with more common
+%% %% threats that affect everyone. For instance, we're based in
+%% %% <LOCATION>. So it should naturally create contingency plans for what
+%% %% to do about cold weather, especially power outages and things that
+%% %% affect heating the house. But Mistral Instruct 7B isn't really
+%% %% detailed or accurate enough, we need GPT-4.
+
+%% +!process_head([WorldState|_]) <-
+%% 	!getThreats(WorldState,Threats);
+%% 	!sortThreatsBySeriousness(WorldState,Threats,SortedThreats);
+%% 	!dump([sortedThreats,SortedThreats]);
+%% 	forall(member(SortedThreat,SortedThreats),
+%% 	       (   
+%% 		   solve(!dump([sortedThreat,SortedThreat])),
+%% 		   solve(!generateContingencyPlansForSortedThreat(WorldState,SortedThreat,ContingencyPlans)),
+%% 		   solve(!dump([sortedThreat,SortedThreat,contingencyPlans,ContingencyPlans])),
+%% 		   forall(member(ContingencyPlan,ContingencyPlans),
+%% 			  (
+%% 			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan])),
+%% 			   solve(!getLikelyEffectsOfContingencyPlan(WorldState,SortedThreat,ContingencyPlan,LikelyEffects)),
+%% 			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan,likelyEffects,LikelyEffects])),
+%% 			   solve(!applyLikelyEffectsToWorldState(WorldState,SortedThreat,ContingencyPlan,LikelyEffects,NewWorldState)),
+%% 			   solve(!dump([newWorldState,NewWorldState])),
+%% 			   solve(+worldState(NewWorldState))
+%% 			  )
+%% 			 )
+%% 	       )
+%% 	      );
+%% 	!removeBelief(worldState(WorldState),[source(self)]);
+%% 	!aisaMainLoop.
+
+%% %% FIXME: Update this (and process_head/2) with the LLM plans from:
+%% %% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/aisa/aisa_new.pasl
+
+%% %% LLM plans
+
+%% +!getThreats(WorldState,Threats) <-
+%% 	.print('Getting threats...');
+%% 	!askLLMList(['Consider the following world state: < < < ',
+%% 		     WorldState,
+%% 		     ' > > >. ',
+%% 		     'Please create a threat list of threats to our well-being based on this current world state, ordrered by and including their importance, urgency, likelihood and impact: '
+%% 		    ],
+%% 		    Threats).
+
+%% +!sortThreatsBySeriousness(WorldState,Threats,SortedThreats) <-
+%% 	.print('Sorting threats...');
+%% 	!render_list(Threats,ThreatsString);
+%% 	!askLLMList(['Consider the following world state and associated threats: ',
+%% 		     '< < < WorldState: ',WorldState,' > > > : ',
+%% 		     '< < < Threats: ',ThreatsString,' > > >. ',
+%% 		     'Please sort the list of threats in terms of seriousness, ordered by and including importance, urgency, likelihood and impact: '
+%% 		     ],SortedThreats).
+
+%% %% Also, eventually, generate here the predicting, monitoring,
+%% %% mitigating, and managing plans, not just contingency plans.
+
+%% +!generateContingencyPlansForSortedThreat(WorldState,SortedThreat,ContingencyPlans) <-
+%% 	.print('Generating contingency plans...');
+%% 	!askLLMList(['Consider the following world state and associated threat: ',
+%% 		     '< < < WorldState: ',WorldState,' > > > : ',
+%% 		     '< < < Threat: ',SortedThreat,' > > >. ',
+%% 		     'Please generate a list of potential contingency plans that would be an appropriate response to this particular threat in this situation: '
+%% 		     ],ContingencyPlans).
+
+%% +!getLikelyEffectsOfContingencyPlan(WorldState,SortedThreat,ContingencyPlan,LikelyEffects) <-
+%% 	.print('Getting likely effects...');
+%% 	!askLLMList(['Consider the following world state and associated plan: ',
+%% 		     '< < < WorldState: ',WorldState,' > > > : ',
+%% 		     '< < < Threat: ',SortedThreat,' > > > : ',
+%% 		     '< < < Plan: ',ContingencyPlan,' > > >. ',
+%% 		     'Please generate an ordered list of effects that executing the plan would have on the world state: '
+%% 		    ],LikelyEffects).
+
+%% +!applyLikelyEffectsToWorldState(WorldState,SortedThreat,ContingencyPlan,LikelyEffects,NewWorldState) <-
+%% 	.print('Applying likely effects...');
+%% 	!render_list(LikelyEffects,LikelyEffectsString);
+%% 	!askLLMConcat(['Consider the following world state and effects of a plan: ',
+%% 		     '< < < World State: ',WorldState,' > > > : ',
+%% 		     '< < < Threat: ',SortedThreat,' > > > : ',
+%% 		     '< < < Plan: ',ContingencyPlan,' > > > : ',
+%% 		     '< < < Effects : ',LikelyEffectsString,' > > >. ',
+%% 		     'Please generate the new world state that results from applying these effects to the world state: '
+%% 		    ],NewWorldState).
+
+%% %% Do executive functioning here
+
+%% %% Load any importables here
+
+%% %% :- spami_load_library([name('freekbs2'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/freekbs2.pasl')]).
+%% %% :- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+%% %% :- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+%% %% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
+
+%% +!run(aisa,_Arguments,_Output) <-
+%% 	%% prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['<CONTEXT>']);
+%% 	!work(andrewdo,Results).
+
+%% %% FIXME: ensure SPSE2-Formalog is running, and ask it to load at
+%% %% least the domains we need.
+
+%% +!work(User,Results) <-
+%% 	!ensureSPSE2FormalogRunning;
+%% 	!getUGraphForContext('<CONTEXT>',Results);
+%% 	argt(Results,[uGraph(UGraph),assertions(Assertions)]);
+%% 	!getImmediateNextSteps(UGraph,NextSteps);
+%% 	findall('has-NL'(NextStep,NL),
+%% 		(   
+%% 		    member(NextStep,NextSteps),
+%% 		    member('has-NL'(NextStep,NL),Assertions)
+%% 		),HasNL);
+%% 	!dump([hasNL,HasNL]);
+%% 	findall(NL,member('has-NL'(_,NL),HasNL),NLs);
+%% 	append(['Please sort these tasks by priority: '],NLs,Question);
+%% 	!askLLMConcat(Question,LLMResults);
+%% 	!dump([llmResults,LLMResults]).
+	
+%% +!ensureSPSE2FormalogRunning <-
+%% 	fail.
+
+%% %% FIXME: This needs to find all terminal nodes first
+%% +!getImmediateNextSteps(UGraph,NextSteps) <-
+%% 	top_sort(UGraph, Sort);
+%% 	reverse(Sort,NextSteps).
+
+
+%% +!getUGraphForContext(Context,[uGraph(UGraph),assertions(Assertions)]) <-
+%% 	!getSPSE2FormalogAssertions(Context,Assertions);
+%% 	!dump([assertions,Assertions]);
+%% 	.findall(Goal,member(goal(Goal),Assertions),Verticies);
+%% 	!dump([verticies,Verticies]);
+%% 	.findall('-'(Goal1,Goal2),member(depends(Goal1,Goal2),Assertions),Edges);
+%% 	!dump([edges,Edges]);
+%% 	.vertices_edges_to_ugraph(Vertices,Edges,UGraph);
+%% 	!dump([ugraph,UGraph]).
+
+
+%% 	%% !getSPSE2ContextDescriptions(Data);
+%% 	%% !dump([descriptions,Data]).
+%% 	%% !getSPSE2FormalogTasks(elle,Tasks);
+%% 	%% !dump([tasks,Tasks]);
+
+%% %% query_agent(spse2,localhost,[],vertices_edges_to_ugraph(Verticles,Edges,UGraph)).
+
+%% %% !add_do_cyc_Assertion('Get ready to rumble',Results).
+
+%% +!getSPSE2ContextDescriptions(Term) <-
+%% 	.shell_command_to_string('spse2 -L -S date -o prolog',Atom);
+%% 	.read_term_from_atom(Atom,Term,[]).
+
+%% +!getSPSE2FormalogAssertions(Context,Assertions) <-
+%% 	.query_agent_bindings(spse2,localhost,Assertion,holds(Context,Assertion),Assertions).
+
+%% +!add_do_cyc_task(TaskName,Result) <-
+%%  	add_do_cyc_task(TaskName,Result).
+
+%% %% 	!getMostImportantTasks(Tasks).
+
+%% %% FIXME: need to have the ability to map out the acyclic graph
+%% %% structure inside Prolog here with ef.pasl
+
+%% %% need to accomodate lots of to.do system features.
+
+%% %% need to import do-convert stuff too, and all other todo systems.
+
+
+%% %% what are some operations we need to do for executive function?
+
+%% %% we need to find that systems overview.
+
+%% %% ugraphs vertices_edges_to_ugraph
+
+
+
+%% %% IMPORTANT: FIXME: create a domain for SPSE2 for tasks that the
+%% %% SPAMI Agents themselves need to perform. And then use
+%% %% aisa to tell the other agents what they might have to
+%% %% do.

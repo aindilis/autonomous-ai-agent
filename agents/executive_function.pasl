@@ -11,7 +11,7 @@
 %% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
 
 +!run(executive_function,_Arguments,_Output) <-
-	%% prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['Org::FRDCSA::ExecutiveFunctionAssistant::Test1']);
+	%% prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['<CONTEXT>']);
 	!work(andrewdo,Results).
 
 %% FIXME: ensure SPSE2-Formalog is running, and ask it to load at
@@ -19,7 +19,7 @@
 
 +!work(User,Results) <-
 	!ensureSPSE2FormalogRunning;
-	!getUGraphForContext('20231005::NormalForm',Results);
+	!getUGraphForContext('<CONTEXT>',Results);
 	argt(Results,[uGraph(UGraph),assertions(Assertions)]);
 	!getImmediateNextSteps(UGraph,NextSteps);
 	findall('has-NL'(NextStep,NL),
@@ -34,7 +34,7 @@
 	!dump([llmResults,LLMResults]).
 	
 +!ensureSPSE2FormalogRunning <-
-	fail.
+	true.
 
 %% FIXME: This needs to find all terminal nodes first
 +!getImmediateNextSteps(UGraph,NextSteps) <-

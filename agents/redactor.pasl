@@ -1,0 +1,91 @@
+:- module('redactor',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
++!run(redactor,[],Output) <-
+	setDebug(off);
+	!run(redactor,[inputList(['/var/lib/myfrdcsa/github/to-redact'
+			     ])],Output).
+
++!run(redactor,Arguments,[beliefs(Beliefs)]) <-
+	.argt(Arguments,[inputList(InputList)]);
+	%% !investigator(InputList,Beliefs).
+	!dump([inputList,InputList,beliefs,Beliefs]).
+
+%% +!investigator([],[]) <-
+%% 	true.
+%% +!investigator([Input|Rest],[Beliefs1,Beliefs2]) <-
+%% 	!dump('ensure that LLM is running');
+%% 	!investigate(Input);
+%% 	.wait(100);
+%% 	.list_beliefs(Beliefs1);
+%% 	!investigator(Rest,Beliefs2).
+
+%% +!investigate(A) :: atom(A) <-
+%% 	!investigate_atom(A).
+
+%% %% +!investigate_atom(A) <-
+%% %%  	!investigate_symlink(A).
+
+%% +!investigate_atom(A) <-
+%% 	!investigate_file(A).
+
+%% -!investigate_atom(A) <-
+%% 	!investigate_directory(A).
+
+%% -!investigate_atom(A) <-
+%% 	!investigate_symlink(A).
+
+%% +!investigate_symlink(A) :: atom(A) & unknown(isa(A,existingSymlink)) & exists_symlink(A) <-
+%% 	+isa(A,existingSymlink).
+
+%% +!investigate_directory(A) :: atom(A) & not isa(A,existingFile) & unknown(isa(A,existingDirname)) & exists_directory(A) <-
+%% 	+isa(A,existingDirname).
+
+%% %% !investigate_directory(A).
+
+%% +!investigate_file(A) :: atom(A) & unknown(isa(A,existingFilename)) & exists_file(A) <-
+%% 	+isa(A,existingFilename).
+
+%% +isa(A,existingFilename) :: unknown(hasProperty(A,executable)) & executable_file(A) <-
+%% 	+hasProperty(A,executable).
+
+%% +isa(A,existingFilename) :: unknown(hasExtension(A,_)) & has_filename_extension(A,B) <-
+%% 	+hasExtension(A,B).
+
+%% +hasExtension(A,_) :: unknown(hasMIMEType(A,_)) & has_mime_type(A,B) <-
+%% 	+hasMIMEType(A,B).
+
+%% %% +hasMIMEType(A,'application/pdf') :: hasExtension(A,pdf) <- 
+%% %% 	+isaDirectly(A,pdfDocment).
+
+%% +hasMIMEType(A,'application/pdf') :: unknown(hasCorrespondingTextFile(A,_)) & has_corresponding_text_file(A,B) <-
+%% 	+hasCorrespondingTextFile(A,B).
+
+%% %% FIXME: Incorporate ToText here (from web_agent.pl), to obtain .txt
+%% %% file from non-text files
+
+%% +hasMIMEType(A,'text/plain') :: unknown(hasCharacterCount(A,_)) & has_character_count(A,B) & nonvar(B) <-
+%%  	+hasCharacterCount(A,B).
+
+%% +hasCorrespondingTextFile(A,B) :: unknown(isa(B,existingFilename)) <-
+%% 	!investigate(B).
+
+%% +hasCharacterCount(A,B) :: unknown(hasSummarization(A,_)) & fewer_characters_than(B,32768) <-
+%% 	!dump([hooray]);
+%% 	.stomping_read_text_from_file(A,Text);
+%% 	!dump([k]);
+%% 	%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/llms.pl
+%% 	%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl
+%% 	!summarize(Text,Summary);
+%% 	!dump([summary,Summary]);
+%% 	+hasSummarization(A,Summary).
+
+%% are(['application/pdf'],mimeTypeFn(document)).
+%% are(['text/plain'],mimeTypeFn(text)).
+
+%% +hasSummarization(A,B) <-
+%% 	!dump([hasSummary,B]);
+%% 	.list_beliefs(_Beliefs).
+

@@ -1,3 +1,102 @@
 :- module('freekbs2',[]).
 :- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
-	
+
+:- use_module('/var/lib/myfrdcsa/codebases/minor/free-life-planner/projects/microtheories/4/microtheories.pl').
+
+:- prolog_ensure_loaded('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/freekbs2_client.pl').
+
+:- spami_report_fact(atTime([2024-10-26,15:10:34],workingProperly(freekbs2))).
+
+%% FIXME: Should be renamed persistence.pasl since it handles all
+%% kinds of persistence.
+
+
+%% COME UP WITH A MODULE HERE FOR USING FASSERT WITH MICROTHEORIES 
+
+%% See about putting a PrologCyc client in here too. For instance, we
+%% could map FSes into the instances of <CYCTERM>, and then
+%% use PrologCyc to enumerate them, maybe with SKSI, idk.
+
+%% Formalog agent, should probably use holds/2 or some microtheory
+%% implementation because otherwise it's all asserted to prologAgent
+%% formalog. ( -><- Not true, because we can use multiple context with
+%% PrologAgent).
+
+%% My prolog-agents need different Mts to segment the KBs. So
+%% implementing Cyc-like Mts inside Prolog using Markus'
+%% Meta-Interpreter, run through Claude to implement.
+
+%% For now, just see about getting basic stuff to work, including a
+%% version of QLF-persistence, with it's own directory. We were
+%% bringing agents under test at last check.
+
+%% fassert is formalog assert and asserts to the current root context as
+%% well as uses kassert. kassert tries massert to write necsesarily
+%% monotonic predicates to (soon to be qlf) files, and if that fails,
+%% writes to FreeKBS2.
+
+%% So now we have to think how to do this with these agents
+
+%% necessarilyMonotonicContexts(['Org::FRDCSA::PrologAgent::TestsLog']).
+
+:- setOption(useMassert,true). %% Please note, for some reason,
+                               %% setting this in
+                               %% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent.pl
+                               %% doesn't work, so it has to be set
+                               %% here.
+
++!kbsAssert(AgentName,FormalogName,Arguments,Result) <-
+	argt(Arguments,[term(Term),context(Context)]);
+	!dump([term(Term),context(Context)]);
+	fassert_argt(AgentName,FormalogName,[term(Term),context(Context)],Result).
+
++!kbsUnassert(AgentName,FormalogName,Arguments,Result) <-
+	argt(Arguments,[term(Term),context(Context)]);
+	!dump([term(Term),context(Context)]);
+	funassert_argt(AgentName,FormalogName,[term(Term),context(Context)],Result).
+
+%% See about possibly using our latest attempt at using Claude to
+%% implement microtheories here.  Work with claude to perfect this
+%% stuff.
+
+%% :- prolog_ensure_loaded('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/apis/perl5_connection.pl').
+
+%% %% see also 
+%% %% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/perllib_cacher.pl
+%% %% /var/lib/myfrdcsa/codebases/minor/formalog/unilang.pl
+
+%% (HTMLString,Text) :-
+%% 	view([to_text(HTMLString,Text)]),
+%% 	AgentName = 'Prolog-Agent-Agent1',
+%% 	FormalogName = 'Prolog-Agent-Yaswi1',
+%% 	connectToPerl5(AgentName,FormalogName,'PerlLib::ToText',[],ToText),
+%% 	view([toText,ToText]),
+%% 	perl5_method(ToText,'ToText',['String',HTMLString],Text).
+
+%% /var/lib/myfrdcsa/codebases/minor/free-life-planner/projects/microtheories/4/
+
+%% Should be able to automatically determine whether it is a Context &
+%% Microtheory, i.e. there is an mt_assertion(MT,Assertion) or just a
+%% context, i.e. Assertion. Should also have the ability to explicitly
+%% say so, both in Prolog Code and as assertions in the Context.
+
+%% Worry first about Contexts and later about Microtheories.
+
+
+
+
+
+
+
+
+
+%% Ideally this would compound, so like, if there was in Context
+%% Context1 an assertion mt_assertion(Mt,Assertion), it would say:
+
+%% belief(Assertion,[source(microtheory(mtFn(Context,Mt)))]).
+
+%% or something.
+
+
+%% belief(Assertion,source(microtheory(Mt))) :-
+%% 	mt_assertion(Mt,Assertion).

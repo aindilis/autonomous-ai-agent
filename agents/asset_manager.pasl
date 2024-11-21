@@ -1,0 +1,6 @@
+:- module('asset_manager',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_agent([name('softbot1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/softbot1.pasl')]).
+
+%% TOOL TO NAVIGATE OUR NETWORKS AND AUTOMATICALLY INVENTORY HARDWARE, SOFTWARE AND DATA ASSETS

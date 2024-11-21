@@ -1,0 +1,152 @@
+:- module('template_toolkit', []).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+:- prolog_ensure_loaded('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/apis/perl5_connection.pl').
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prolog_lib/template_toolkit.pl
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib_t/template_toolkit.plt
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prompts
+
+%% FIXME: use some kind of assert so it doesn't recompute constantly for every variable, etc
+
++!generateTemplate(Arguments,Output) <-
+	getOption(promptDirDefault,DefaultPromptDir);
+	!dumpIf([defaultPromptDir,DefaultPromptDir]);
+	%% getOption(promptDir,PromptDir);
+	%% !dumpIf([promptDir,PromptDir]);
+	%% orEquals(PromptDir,DefaultPromptDir);
+	%% !dumpIf([promptDir,PromptDir]);
+	PromptDir = DefaultPromptDir;
+	argt(Arguments,[template(TemplateFilePieces),context(Context),variables(Variables)]);
+	!dumpIf([template(TemplateFilePieces),context(Context),variables(Variables)]);
+	forall(member(Variable,Variables),
+	       (   pred_args(Variable,Name,[Value]),
+		   tt_set_variable(Context,Name,Value)));
+	append([PromptDir],TemplateFilePieces,List);
+	atomic_list_concat(List,'/',TemplateFilename);
+	!dumpIf([templateFilename(TemplateFilename)]);
+	tt_process_template(TemplateFilename,Context,Output);
+	!dumpIf([output,Output]).
+
+%% %% This SPAMI library provides several plans for interacting with
+%% %% Template Toolkit:
+
+%% %% tt_process_template/3: Process a template file with given
+%% %% variables.
+
+%% %% tt_set_variable/3: Set a variable in the Template Toolkit context.
+
+%% %% tt_get_variable/3: Get the value of a variable from the Template
+%% %% Toolkit context.
+
+%% %% tt_include_template/3: Include another template file.
+
+%% %% tt_list_defined_variables/2: List all defined variables in a
+%% %% context.
+
+%% see also 
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/perllib_cacher.pl
+%% /var/lib/myfrdcsa/codebases/minor/formalog/unilang.pl
+
+%% +!generate_report <-
+%% 	!tt_set_variable(report_context, title, "Monthly Report"),
+%% 	!tt_set_variable(report_context, date, "2023-05-01"),
+%% 	!tt_process_template("report_template.tt", report_context, ReportOutput),
+%% 	    .print(ReportOutput).
+
+
+%% generateTemplate(Arguments, locateDependencies, Question2);
+
+%% +!question(Question,Vars,Output) <-
+%% 	!generateTemplate([template([qna,generate_prompt_for_question]),
+%% 			   context(generatePromptForQuestion),
+%% 			   variables(Vars)],
+%% 			  Output).
+
+%% tt_process_template(Context, selectFilesContainingDependencyInfo, Question1);
+%% [packager,select_files_containing_dependency_info]
+
+%% see
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/packager.pasl
+%% for a usage example of this module.
+
+%% :- use_module(library(process)).
+
+%% generateTemplate([template([packager,selectFilesContainingDependencyInfo]),
+%% 		   context(selectFilesContainingDependencyInfo),
+%% 		   variables([systemName(System),fileListing(FileListing)])],
+%% 		   Output).
+
+
+
+
+
+%% %% Here is where we'll plug in perl5_call, this theoretical
+%% %% boilerplate below will be replaced:
+
+%% % Assuming a Perl script named 'tt_bridge.pl' that provides the actual interface to Template Toolkit
+
+%% % Process a template file with given variables
+%% +!tt_process_template(TemplateFile, Variables, Output) <-
+%%     .list_to_comma_separated(Variables, VariablesStr),
+%%     .concat_atom(['perl tt_bridge.pl process_template ', TemplateFile, ' ', VariablesStr], Command),
+%%     .system(Command, ExitCode, Output),
+%%     .handle_exit_code(ExitCode, 'Error processing template').
+
+
+
+%% % Set a variable in the Template Toolkit context
+%% +!tt_set_variable(Context, Name, Value) <-
+%%     .concat_atom(['perl tt_bridge.pl set_variable ', Context, ' ', Name, ' ', Value], Command),
+%%     .system(Command, ExitCode, _),
+%%     .handle_exit_code(ExitCode, 'Error setting variable').
+
+
+%% % Get the value of a variable from the Template Toolkit context
+%% +!tt_get_variable(Context, Name, Value) <-
+%%     .concat_atom(['perl tt_bridge.pl get_variable ', Context, ' ', Name], Command),
+%%     .system(Command, ExitCode, Value),
+%%     .handle_exit_code(ExitCode, 'Error getting variable').
+
+%% % Include another template file
+%% +!tt_include_template(Context, IncludeFile, Output) <-
+%%     .concat_atom(['perl tt_bridge.pl include_template ', Context, ' ', IncludeFile], Command),
+%%     .system(Command, ExitCode, Output),
+%%     .handle_exit_code(ExitCode, 'Error including template').
+
+
+
+
+%% % List all defined variables in a context
+%% +!tt_list_defined_variables(Context, Variables) <-
+%%     .concat_atom(['perl tt_bridge.pl list_variables ', Context], Command),
+%%     .system(Command, ExitCode, Output),
+%%     .handle_exit_code(ExitCode, 'Error listing variables'),
+%%     .split_string(Output, ",", " ", Variables).
+
+%% % Helper plan to convert a list to a comma-separated string
+%% +!list_to_comma_separated([], "") <-
+%%     true.
+%% +!list_to_comma_separated([H|T], Result) <-
+%%     .list_to_comma_separated(T, TailResult),
+%%     (TailResult == "" -> 
+%%         Result = H
+%%     ;
+%%         .concat_atom([H, ',', TailResult], Result)
+%%     ).
+
+%% % Helper plan to handle exit codes
+%% +!handle_exit_code(0, _) <-
+%%     true.
+%% +!handle_exit_code(_, ErrorMessage) <-
+%%     .print(ErrorMessage),
+%%     .fail.
+
+
+
+%% %% The library assumes the existence of a Perl script named
+%% %% tt_bridge.pl that provides the actual interface to Template
+%% %% Toolkit. Here's a sketch of what this Perl script might look like:

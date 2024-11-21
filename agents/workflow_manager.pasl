@@ -11,8 +11,82 @@
 %% :- spami_load_agent([name('sentinel'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/sentinel.pasl')]).
 
 +!run(workflow_manager,_Arguments,_Output) <-
-	%% prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['Org::FRDCSA::ExecutiveFunctionAssistant::Test1']);
+	%% prolog_agent_load_contexts('Prolog-Agent-Agent1','Prolog-Agent-Yaswi1',['<CONTEXT>']);
 	!workflow(andrewdo,Results).
 
 +!workflow(User,Results) <-
 	true.
+
+%% 	!getUGraphForContext('<CONTEXT>',Results);
+%% 	argt(Results,[uGraph(UGraph),assertions(Assertions)]);
+%% 	!getImmediateNextSteps(UGraph,NextSteps);
+%% 	findall('has-NL'(NextStep,NL),
+%% 		(   
+%% 		    member(NextStep,NextSteps),
+%% 		    member('has-NL'(NextStep,NL),Assertions)
+%% 		),HasNL);
+%% 	!dump([hasNL,HasNL]);
+%% 	findall(NL,member('has-NL'(_,NL),HasNL),NLs);
+%% 	append(['Please sort these tasks by priority: '],NLs,Question);
+%% 	!askLLMConcat(Question,LLMResults);
+%% 	!dump([llmResults,LLMResults]).
+	
+%% %% FIXME: This needs to find all terminal nodes first
+%% +!getImmediateNextSteps(UGraph,NextSteps) <-
+%% 	top_sort(UGraph, Sort);
+%% 	reverse(Sort,NextSteps).
+
+
+%% +!getUGraphForContext(Context,[uGraph(UGraph),assertions(Assertions)]) <-
+%% 	!getSPSE2FormalogAssertions(Context,Assertions);
+%% 	!dump([assertions,Assertions]);
+%% 	.findall(Goal,member(goal(Goal),Assertions),Verticies);
+%% 	!dump([verticies,Verticies]);
+%% 	.findall('-'(Goal1,Goal2),member(depends(Goal1,Goal2),Assertions),Edges);
+%% 	!dump([edges,Edges]);
+%% 	.vertices_edges_to_ugraph(Vertices,Edges,UGraph);
+%% 	!dump([ugraph,UGraph]).
+
+
+%% 	%% !getSPSE2ContextDescriptions(Data);
+%% 	%% !dump([descriptions,Data]).
+%% 	%% !getSPSE2FormalogTasks(elle,Tasks);
+%% 	%% !dump([tasks,Tasks]);
+
+%% %% query_agent(spse2,localhost,[],vertices_edges_to_ugraph(Verticles,Edges,UGraph)).
+
+%% %% !add_do_cyc_Assertion('Get ready to rumble',Results).
+
+%% +!getSPSE2ContextDescriptions(Term) <-
+%% 	.shell_command_to_string('spse2 -L -S date -o prolog',Atom);
+%% 	.read_term_from_atom(Atom,Term,[]).
+
+%% +!getSPSE2FormalogAssertions(Context,Assertions) <-
+%% 	.query_agent_bindings(spse2,localhost,Assertion,holds(Context,Assertion),Assertions).
+
+%% +!add_do_cyc_task(TaskName,Result) <-
+%%  	add_do_cyc_task(TaskName,Result).
+
+%% %% 	!getMostImportantTasks(Tasks).
+
+%% %% FIXME: need to have the ability to map out the acyclic graph
+%% %% structure inside Prolog here with ef.pasl
+
+%% %% need to accomodate lots of to.do system features.
+
+%% %% need to import do-convert stuff too, and all other todo systems.
+
+
+%% %% what are some operations we need to do for executive function?
+
+%% %% we need to find that systems overview.
+
+%% %% ugraphs vertices_edges_to_ugraph
+
+
+
+%% %% IMPORTANT: FIXME: create a domain for SPSE2 for tasks that the
+%% %% SPAMI Agents themselves need to perform. And then use
+%% %% workflow_manager to tell the other agents what they might have to
+%% %% do.
+

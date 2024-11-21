@@ -27,8 +27,18 @@
 	!obtain_api_documentation.
 
 +!obtain_api_documentation <-
-	!web_agent_explore_recursive_no_parent(['file:///var/lib/myfrdcsa/codebases/minor/cyc-doc/data-git/cycdoc/index.html'],Map),
+	!web_agent_explore_recursive_no_parent(['<URI>'],Map),
 !run_web_agent(,Output);
 	
 
 %% Have it also look at it's own code, and suggest improvements.
+
+
+
+%% see /var/lib/myfrdcsa/codebases/minor/api-learner
+
+%% develop an API learner, maybe using OpenAI universe or and starter
+%% kit, or something, text versions
+
+%% https://www.programmableweb.com/
+%% https://www.programmableweb.com/category/all/apis

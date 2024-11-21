@@ -1,0 +1,43 @@
+:- module('fibonacci',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_report_fact(atTime([2024-10-16,10:02:21],workingProperly(fibonacci))).
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_library([name('template_toolkit'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/template_toolkit.pasl')]).
+
+%% generate the fibonacci sequence using LLMs, using Template Toolkit
+%% to generate prompts, parsing the output, and caching the results.
+
+%% option(promptDirDefault,'').
+
++!run(fibonacci,[],Output) <-
+	setDebug(off);
+	!run(fibonacci,[inputList([0,1])],Output).
+
++!run(fibonacci,Arguments,[beliefs(Beliefs)]) <-
+	.argt(Arguments,[inputList(Sequence)]);
+	.append(_,[X,Y], Sequence);
+	!getNextFibonacciNumber(X,Y,Z);
+	.append(Sequence,[Z],NewSequence);
+	!dump([nextNumber,Z,newSequence,NewSequence]);
+	!run(fibonacci,[inputList(NewSequence)],Result).
+
++!getNextFibonacciNumber(X,Y,Z) <-
+	!generateTemplate([template([fibonacci,add]),
+			   context(fibonacciAdd),
+			   variables([x(X),y(Y)])],
+			  TmpQ);
+	.normalize_whitespace(TmpQ,Q);
+	!dump(Q);
+	!askLLM(Q,TmpA1);
+	.normalize_whitespace(TmpA1,TmpA2);
+	.strip_whitespace(TmpA2,A);
+	!dump(A);
+	Z = A.
+
+%% [ nextNumber,
+%%   '377',
+%%   newSequence,
+%%   [0,1,'1','2','3','5','8','13','21','34','55','89','144','233','377']
+%% ]

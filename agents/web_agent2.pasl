@@ -1,0 +1,120 @@
+:- module('web_agent2',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- setDebug(on).
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('web_agent'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/web_agent.pasl')]).
+:- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+
++!run(web_agent2, _Arguments, Output) <-
+	!focused_crawl('https://frdcsa.org/frdcsa', 'free libre AI software', 3);
+	!dump([output, Output]).
+
++!focused_crawl(StartURI, Topic, MaxDepth) <-
+	!dump([focused_crawl]);
+	!initialize_crawl(StartURI, Topic, MaxDepth);
+	!crawl_loop.
+
++!initialize_crawl(StartURI, Topic, MaxDepth) <-
+	!dump([initialize_crawl]);
+	+crawl_topic(Topic);
+	+max_depth(MaxDepth);
+	+frontier([StartURI]);
+	+visited([]);
+	+current_depth(0).
+
++!crawl_loop <-
+	!dump([crawl_loop]);
+	?frontier([NextURI|Rest]);
+	!dump([nextURI,NextURI]);
+	minus(frontier([NextURI|Rest]));
+	!dump([addFrontier,Rest]);	
+	+frontier(Rest);
+	!dump([process_page]);	
+	!process_page(NextURI);
+	!dump([update_frontier]);	
+	!update_frontier;
+	!check_termination_condition.
+
++!process_page(URI) <-
+	!dump([process_page]);
+	!web_agent_explore(URI);
+	?hasSummary(URI, Summary);
+	!evaluate_relevance(Summary, Relevance);
+	+page_relevance(URI, Relevance);
+	?current_depth(Depth);
+	+visited_at_depth(URI, Depth);
+	+visited(URI).
+
++!evaluate_relevance(Summary, Relevance) <-
+	!dump([evaluate_relevance]);
+	?crawl_topic(Topic);
+	!askLLMConcat(['On a scale of 0 to 1, how relevant is the following summary to the topic "', Topic, '"? Summary: ', Summary, ' Provide only a number as the answer. '], TmpRelevanceString);
+	strip_outer_whitespace(TmpRelevanceString,RelevanceString);
+	atom_number(RelevanceString,Relevance);
+	!dump([relevance(Relevance)]).
+
++!update_frontier <-
+	!dump([update_frontier]);
+	?current_depth(Depth);
+	NewDepth is Depth + 1;
+	minus(current_depth(Depth));
+	+current_depth(NewDepth);
+	!get_unvisited_links(UnvisitedLinks);
+	!prioritize_links(UnvisitedLinks, PrioritizedLinks);
+	!add_to_frontier(PrioritizedLinks).
+
++!get_unvisited_links(UnvisitedLinks) <-
+	!dump([get_unvisited_links]);
+	?links(AllLinks);
+	findall(Link, (member(Link, AllLinks), not(belief(visited(Link),[source(self)]))), UnvisitedLinks).
+
++!prioritize_links(Links, PrioritizedLinks) <-
+	!dump([prioritize_links]);
+	?crawl_topic(Topic);
+	findall(Link-Relevance, (
+				 member(Link, Links),
+				 solve(!estimate_link_relevance(Link, Topic, Relevance))
+				), RelevancePairs);
+	sort(2, @>=, RelevancePairs, SortedPairs);
+	findall(Link, member(Link-_, SortedPairs), PrioritizedLinks).
+
++!estimate_link_relevance(Link, Topic, Relevance) <-
+	!dump([estimate_link_relevance]);
+	!askLLMConcat(['On a scale of 0 to 1, how likely is the link "', Link, '" to be relevant to the topic "', Topic, '"? Provide only a number as the answer.'], RelevanceString);
+	atom_number(RelevanceString, Relevance).
+
++!add_to_frontier(NewLinks) <-
+	!dump([add_to_frontier]);
+	?frontier(CurrentFrontier);
+	append(CurrentFrontier, NewLinks, UpdatedFrontier);
+	minus(frontier(CurrentFrontier));
+	+frontier(UpdatedFrontier).
+
++!check_termination_condition <-
+	!dump([check_termination_condition]);
+	?max_depth(MaxDepth);
+	?current_depth(CurrentDepth);
+	?frontier(Frontier);
+	if((	CurrentDepth >= MaxDepth ; Frontier = []),
+	   solve(!end_crawl),
+	   solve(!crawl_loop)
+	  ).
+
++!end_crawl <-
+	!dump([end_crawl]);
+	?visited(VisitedURIs);
+	?crawl_topic(Topic);
+	!generate_crawl_report(VisitedURIs, Topic).
+
++!generate_crawl_report(VisitedURIs, Topic) <-
+	!dump([generate_crawl_report]);
+	findall(URI-Summary, (
+			      member(URI, VisitedURIs);
+			      hasSummary(URI, Summary);
+			      page_relevance(URI, Relevance);
+			      Relevance > 0.4999
+			     ), RelevantPages);
+	!askLLMConcat(['Generate a report summarizing the following pages related to the topic "', Topic, '": ', RelevantPages], Report);
+	!dump([crawl_report, Report]).

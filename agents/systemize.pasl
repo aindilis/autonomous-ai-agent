@@ -1,0 +1,130 @@
+:- module('systemize',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+:- spami_load_library([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+
+%% %% see also
+%% %% /var/lib/myfrdcsa/codebases/minor/sentinel/agentspeak/spami/sentinel_inotify.pl
+%% %% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prolog/sentinel.pl
+
+%% %% <REDACTED>
+
+%% sourcedFrom('/var/lib/myfrdcsa/codebases/minor/sentinel/agentspeak/sentinel.pasl').
+%% sourcedFrom('/var/lib/myfrdcsa/codebases/minor/sentinel/scripts/sentinel').
+%% sourcedFrom('/var/lib/myfrdcsa/codebases/minor/vger2/vger2.pl').
+
+%% hasDistinctModesOfOperation(sentinel,[inotify2,unilangAndInotify2,systemize]).
+
+%% %% hasMode(sentinel,inotify2).
+
+%% hasMode(sentinel,systemize).
+
+%% +!run(systemize,Arguments,Ouptut) <-
+%% 	setDebug(off);
+%% 	list_plans(_);
+%% 	systemize_main.
+
+%% %% !sentinelAnalyze(['<FILE>'],Output).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% +!systemize_act_on_event(Event) :: Event = close_write(file(File)) & has_filename_extension(File,'pdf') <-
+%% 	!process_incoming_file(File).
+
+%% +!systemize_act_on_event(Event) <-
+%% 	print(['unhandled event ', Event]).
+
+%% +!process_incoming_file(File) <-
+%% 	nl;
+%% 	print(['Sentinel: Classifying incoming file: ',File]);
+%% 	!systemizeAnalyze([File],Results);
+%% 	nl.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% +!systemizeAnalyze([],[]) <-
+%% 	true.
+%% +!systemizeAnalyze([File|Rest],[Beliefs1,Beliefs2]) <-
+%% 	!investigator([File],Beliefs);
+%% 	.wait(10000);
+%% 	?isa(File,pdfDocument);
+%% 	!systemizeAnalyze(Rest,Beliefs2).
+
+%% ?isa(A,pdfDocument) <-
+%% 	?hasMIMEType(A,'application/pdf');
+%% 	?hasExtension(A,pdf);
+%% 	+isa(A,pdfDocument);
+%% 	list_beliefs(_).
+
+%% +!systemize_network_monitor_host_available(Host) <-
+%% 	!dump([Host,available,activating,softbot,to,retrieve,information]).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% +!systemizeSystemize <-
+	
+%% 	%% use cases.
+
+%% 	%% 1> Rex into ai6 and retrieve everything.
+
+%% 	%% 2> just go over everything on ai2 system, but make it plug
+%% 	%% and play so that it can use Rex independently.
+
+%% 	true.
+
+%% %% +!processSoftwareArchiveFile(File) :: isa(File,softwareArchiveFile) <-
+%% %% 	true.
+
+%% %% +!processFinancialRecords(File) :: isa(File,financialRecordsFile) <-
+%% %% 	true.
+
+%% %% % And add to academician
+%% %% +!extract_definitions(File) <-
+%% %% 	true.
+
+
+%% %% +!storeReleventInfoWithKBFS(_) <-
+%% %% 	true.
+
+
+%% %% classify research papers into survey papers, system proposal
+%% %% papers, etc.
+
+
+
+%% %% %% /var/lib/myfrdcsa/codebases/minor/systemize/scripts/systemize
+
+%% %% %%  Based on the provided Perl program, here are some of the major operations that can be exposed as an API:
+
+%% %% %% 1. Definition extraction: This operation parses the PDF file and extracts information such as title, author, abstract, keywords, etc. into a hash table format for further processing or analysis.
+
+%% %% %% 2. Citation parsing: This operation takes the extracted information and formats it into a citation string according to specific guidelines.
+
+%% %% %% 3. Directory monitoring: This operation monitors specified directories for changes in file type (PDF, tar.gz/tgz, OFX) and performs actions such as processing PDF files and extracting links from them.
+
+%% %% %% 4. Configuration parsing: This operation extracts configuration options from the command line arguments and passes them to other functions for processing or analysis.
+
+%% %% %% 5. File conversion: This operation converts specified PDF files to text format for further processing.
+
+%% %% %% 6. Link extraction: This operation extracts links from text files in a specified format (PDF and text files) for further analysis.
+
+%% %% %% 7. KBFS integration: This operation integrates the Keyword Binding Framework System (KBFS) for searching and retrieving relevant documents based on file IDs.
+
+%% %% hasValue(mainMusicDirectory,'/home/andrewdo/Media/Music').
+
+
+%% featureRequest('Sentinel or DigiLib should be able to search our filesystems, with KBFSs help, and locate all papers and other research dcouments and either replace them with a link to the proper DigiLib location, or DigiLib linking outward. Probably the prior is better.').
+
+%% featureRequest('I should be able to write notes on files and stuff, and systemize reads and acts on those. For instance, "Please add this URL to the POSI philanthropists file"').
+
+%% featureRequest('It should take our files that we download, like random websites, and put them where they should go, either this or KBFS::Systemize::Index').
+
+%% featureRequest('systemize should be triggered/activated whenever an internet connection from <HOST> to <HOST> is restored, and it should pull down, similar to both-data-diode, the important data, including any bank records, new pdf downloads, and anything in the outgoing such as memes, git repos, and random files. Then when they are all safely on our system <HOST>, we can then distribute them appropriately with more systemize logic. Set up <REDACTED> to do this. <FILE>').
+
+%% featureRequest('Perhaps use some combination of softbot1, iaec, setanta-agent, agent-smith and systemizey to automatically go into a remote system such as <HOST>, and extract useful information from it.').
+
+%% featureRequest('Also have it go into <DIR> and have it reorganize all of that stuff into the right places.').
+
+%% featureRequest('copy GIT repos from <DIR>/<N>/git etc to proper location in /var/lib/myfrdcsa/repositories/external/git, external, sandbox etc.').

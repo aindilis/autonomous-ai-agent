@@ -23,6 +23,13 @@
 %% INCORPORATE ALL OF THE RULES, SUCH AS ACLs, Execute communication
 %% intents. Involve LLMs in rephrasing things.
 
+%% when we have Llama3 accessible again, be sure to ask it to generate
+%% some boilerplate gauntlet of communication checks to make sure what
+%% comes in and goes out is appropriate. For instance, we might have a
+%% social filter to avoid gaffes. Use our to-dos to come up with what
+%% those checks would be, and Llama3 to craft the AgentSpeak according
+%% to a format of my design.
+
 +!ensureNotPromosm(Content) <-
 	true.
 

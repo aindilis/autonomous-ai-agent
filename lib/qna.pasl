@@ -1,0 +1,15 @@
+:- module('qna', []).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('template_toolkit'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/template_toolkit.pasl')]).
+
+%% What was I thinking here with this qna module? I had a thought about generating the prompt.
+
++!test_1 <-
+	!question('Find all the emails in this paper [% paper %]',[paper(Paper)],Output).
+
++!question(Question,Vars,Output) <-
+	!generateTemplate([template([qna,generate_prompt_for_question]),
+			   context(generatePromptForQuestion),
+			   variables(Vars)],
+			  Output).

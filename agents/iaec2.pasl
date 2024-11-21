@@ -16,8 +16,8 @@ neg(sourcedFrom('/var/lib/myfrdcsa/codebases/minor/iaec/jason/attempts/1/iaec_1.
 +!run(iaec2,[],Output) <-
 	setDebug(off);
 	!run(iaec2,[inputList(['/home/andrewdo/morbini-phd-thesis.pdf',
-			      '/home/andrewdo/todo-20221115.pdf',
-			      '/home/andrewdo/flush-home-water.pdf'
+			      '<FILENAME>',
+			      '<FILENAME>'
 			     ])],Output).
 
 +!run(iaec2,Arguments,[beliefs(Beliefs)]) <-
@@ -92,9 +92,9 @@ neg(sourcedFrom('/var/lib/myfrdcsa/codebases/minor/iaec/jason/attempts/1/iaec_1.
 	!investigate(B).
 
 +hasCharacterCount(A,B) :: unknown(hasSummarization(A,_)) & fewer_characters_than(B,32768) <-
-	!dump([hooray1]);
+	!dump([hooray]);
 	.stomping_read_text_from_file(A,Text);
-	!dump([hooray2]);
+	!dump([k]);
 	%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/llms.pl
 	%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl
 	!summarize(Text,Summary);

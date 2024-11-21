@@ -1,0 +1,233 @@
+:- module('enhanced_executive_function', []).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+hasAuthors(thisDocument,[claude3p5SonnetLLM]).
+
+%% Load necessary libraries and agents
+:- spami_load_library([name('util1'), file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_agent([name('iaec'), file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+:- spami_load_agent([name('web_agent'), file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/web_agent.pasl')]).
+
+%% Dynamic predicates for maintaining state
+:- dynamic current_context/1, task_queue/1, calendar_events/1, user_preferences/1.
+:- dynamic knowledge_base/2, reflection_log/2, learning_experiences/2.
+
++!run(enhanced_executive_function, Arguments, Output) <-
+	!initialize_agent;
+	!main_loop.
+
++!initialize_agent <-
+	!load_user_preferences;
+	!sync_calendar;
+	!load_task_queue;
+	!assess_current_context;
+	!load_knowledge_base.
+
++!main_loop <-
+	!observe;
+	!orient;
+	!decide;
+	!act;
+	!reflect;
+	!learn;
+	.wait(60000); %% Wait for 1 minute before next iteration
+	!main_loop.
+
+%% OBSERVE phase
++!observe <-
+	!update_current_context;
+	!check_for_new_tasks;
+	!check_calendar_updates;
+	!monitor_system_resources.
+
+%% ORIENT phase
++!orient <-
+	!analyze_task_priorities;
+	!identify_conflicts;
+	!generate_context_summary.
+
+%% DECIDE phase
++!decide <-
+	!generate_action_plan;
+	!validate_plan;
+	!adjust_plan_if_necessary.
+
+%% ACT phase
++!act <-
+	!execute_high_priority_tasks;
+	!update_task_statuses;
+	!communicate_progress_to_user.
+
+%% Helper plans
++!load_user_preferences <-
+	%% Implement logic to load user preferences from a file or database
+	true.
+
++!sync_calendar <-
+	%% Implement logic to sync with user's calendar system
+	true.
+
++!load_task_queue <-
+	!getSPSE2FormalogTasks(User, Tasks);
+	+task_queue(Tasks).
+
++!assess_current_context <-
+	%% Implement logic to assess and set the initial context
+	+current_context([]).
+
++!update_current_context <-
+	%% Implement logic to update the current context based on various factors
+	true.
+
++!check_for_new_tasks <-
+	%% Implement logic to check for and add new tasks to the queue
+	true.
+
++!check_calendar_updates <-
+	%% Implement logic to check for updates in the user's calendar
+	true.
+
++!monitor_system_resources <-
+	%% Implement logic to monitor system resources (CPU, memory, disk space)
+	true.
+
++!analyze_task_priorities <-
+	?task_queue(Tasks),
+	?current_context(Context),
+	!askLLMList(['Given the current context: ', Context, 
+		     ' and the following tasks: ', Tasks, 
+		     'Please prioritize these tasks and explain the reasoning:'],
+		    PrioritizedTasks),
+	+prioritized_tasks(PrioritizedTasks).
+
++!identify_conflicts <-
+	?prioritized_tasks(PrioritizedTasks),
+	?calendar_events(Events),
+	!askLLMList(['Given the prioritized tasks: ', PrioritizedTasks, 
+		     ' and the following calendar events: ', Events, 
+		     'Please identify any conflicts and suggest resolutions:'],
+		    Conflicts),
+	+task_conflicts(Conflicts).
+
++!generate_context_summary <-
+	?current_context(Context),
+	?prioritized_tasks(PrioritizedTasks),
+	?task_conflicts(Conflicts),
+	!askLLMConcat(['Please generate a summary of the current situation given:',
+		       'Context: ', Context,
+		       'Prioritized Tasks: ', PrioritizedTasks,
+		       'Conflicts: ', Conflicts],
+		      Summary),
+	+context_summary(Summary).
+
++!generate_action_plan <-
+	?context_summary(Summary),
+	!askLLMList(['Based on this summary: ', Summary, 
+		     'Please generate a detailed action plan for the next hour:'],
+		    ActionPlan),
+	+action_plan(ActionPlan).
+
++!validate_plan <-
+	?action_plan(Plan),
+	?user_preferences(Preferences),
+	!askLLMConcat(['Given this action plan: ', Plan, 
+		       'and user preferences: ', Preferences,
+		       'Is this plan valid and aligned with user preferences? If not, why?'],
+		      Validation),
+	+plan_validation(Validation).
+
+%% New reflection phase
++!reflect <-
+	?action_plan(Plan),
+	?context_summary(Summary),
+	!askLLMConcat(['Given the following action plan: ', Plan,
+		       'and context summary: ', Summary,
+		       'Please reflect on the decision-making process. What were the key factors? What alternatives were considered? What could be improved?'],
+		      Reflection),
+	get_time(Timestamp),
+	assertz(reflection_log(Timestamp, Reflection)).
+
+%% New learning phase
++!learn <-
+	!extract_learning_experiences;
+	!update_knowledge_base.
+
++!extract_learning_experiences <-
+	?action_plan(Plan),
+	?task_queue(Tasks),
+	!askLLMList(['Given the following action plan: ', Plan,
+		     'and task queue: ', Tasks,
+		     'Please identify key learning experiences or insights that could improve future decision-making:'],
+		    Experiences),
+	get_time(Timestamp),
+	assertz(learning_experiences(Timestamp, Experiences)).
+
++!update_knowledge_base <-
+	findall(Experience, learning_experiences(_, Experience), AllExperiences),
+	!askLLMList(['Given these learning experiences: ', AllExperiences,
+		     'Please summarize the key insights and suggest updates to the knowledge base:'],
+		    Updates),
+	forall(member(Update, Updates),
+	       (   
+		   !parse_knowledge_update(Update, Key, Value),
+		   retractall(knowledge_base(Key, _)),
+		   assertz(knowledge_base(Key, Value))
+	       )).
+
++!parse_knowledge_update(Update, Key, Value) <-
+	%% Implement logic to parse the update into a key-value pair
+	true.
+
++!load_knowledge_base <-
+	%% Implement logic to load the knowledge base from persistent storage
+	true.
+
+%% Modified decision phase to incorporate knowledge base
++!decide <-
+	!generate_action_plan;
+	!validate_plan;
+	!consult_knowledge_base;
+	!adjust_plan_if_necessary.
+
++!consult_knowledge_base <-
+	?action_plan(Plan),
+	findall(KV, knowledge_base(K,V), KnowledgeBase),
+	!askLLMConcat(['Given this action plan: ', Plan,
+		       'and this knowledge base: ', KnowledgeBase,
+		       'Should the plan be adjusted based on past experiences? If so, how?'],
+		      Advice),
+	+knowledge_base_advice(Advice).
+
+%% Modified plan adjustment to consider knowledge base advice
++!adjust_plan_if_necessary <-
+	?plan_validation(Validation),
+	?knowledge_base_advice(Advice),
+	if (Validation \= 'Yes' ; Advice \= 'No adjustments needed') {
+								      ?action_plan(OldPlan),
+								      !askLLMList(['The following plan may need adjustment: ', OldPlan,
+										   'Validation result: ', Validation,
+										   'Knowledge base advice: ', Advice,
+										   'Please generate an adjusted plan:'],
+										  NewPlan),
+								      -+action_plan(NewPlan)
+								     }.
+
++!execute_high_priority_tasks <-
+	?action_plan(Plan),
+	%% Implement logic to execute the highest priority tasks from the plan
+	true.
+
++!update_task_statuses <-
+	%% Implement logic to update the status of tasks after execution
+	true.
+
++!communicate_progress_to_user <-
+	?action_plan(Plan),
+	%% Implement logic to communicate progress and plan to the user
+	true.
+
+%% Utility plans
+
++!getSPSE2FormalogTasks(User, Tasks) <-
+	%% Implement logic to retrieve tasks from SPSE2-Formalog
+	true.

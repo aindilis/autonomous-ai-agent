@@ -1,0 +1,66 @@
+:- module('blackarch',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
+:- spami_load_library([name('web_agent'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/web_agent.pasl')]).
+
+%% see also
+
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/setanta').
+sourcedFrom('/var/lib/myfrdcsa/codebases/minor/setanta-agent').
+
++!run(blackarch,Arguments,Ouptut) <-
+	true.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
++!map_network(NetworkMap) <-
+	true.
+
++!secure_computer(Machine) <-
+	true.
+
++!ensure_computer_functioning(Machine) <-
+	true.
+
++!shred_data_drive(Machine,Drive) <-
+	fail.
+
+%% (try to seek out the user's confirmation before doing operations
+%%  that could cause data loss)
+
++!optimize_computer(Machine) <-
+	%% # Step One: Clear the available file 
+	%% system "dpkg --clear-avail";
+
+	%% # Step Two: Forget old unavailable packages 
+	%% system "dpkg --forget-old-unavail";
+
+	%% # Step Three: If you use grep-available or other tools that rely on a useful available file, update the available file using 
+	%% # system "sync-available";
+	%% # (in the dctrl-tools package).
+
+	%% setup encryption for Debian
+
+
+	%% (do things like make sure all databases are up-to-date "like slocate, dlocate, apt-file, apt-get, etc")
+	%% (make sure things like "reading database" for apt-get are optimized using that technique they explained)
+	%% (fix all encryption keys for apt-get)
+	%% (vet boot logs for error messages for improperly configured software)
+	%% (do a security scan of the system)
+	%% (possibly do an "apt-get upgrade")
+
+	%% see Lynis
+
+	%% (map out the network environment)
+
+	%% (FRDCSA specific
+	%%  (ensure etags are all updated)
+	%%  )
+	true.
+
++!run_integrity_checks(Machine) <-
+	!sudo('chkrootkit -r');
+	%% !sudo('rkhunter --uppropd');
+	!sudo('rkhunter --uppropd').
+

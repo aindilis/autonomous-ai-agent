@@ -1,6 +1,8 @@
 :- module('praise_bot',[]).
 :- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
 
+:- spami_report_fact(atTime([2024-10-16,18:06:30],workingProperly(praise_bot))).
+
 :- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
 
 sourcedFrom('/var/lib/myfrdcsa/codebases/minor/motivator/to.do').
@@ -12,14 +14,12 @@ sourcedFrom('/var/lib/myfrdcsa/codebases/minor/compliment-generation').
 
 +!playReward(accomplishment) <-
 	%% FIRST MAKE SURE THE AUDIO IS TURNED DOWN
-	shell_command_async('mplayer "/home/andrewdo/intro.wav"').
+	shell_command_async('mplayer "<AUDIO_FILE>"').
 
 %% Figure out when it should praise you, when it hits you, gamification - the red . Reinforcing. Alexa would be able prompting.
 
 %%  (multimodal feedback - gamification. Todo list system
 %%   recognizing "way to work on your todo list")
-%%  (play that audio when I hit a
-%%   certain)
 %%  (Auto-detection of completed todo list items, and issuing
 %%   praise, either reward musically or verbally or etc)
 %%  (multiple different ways to be reinforced)
@@ -30,4 +30,3 @@ sourcedFrom('/var/lib/myfrdcsa/codebases/minor/compliment-generation').
 %%  ("You're Getting Results", when something is accomplished)
 
 %% (have praisebot trigger on git commits. Speak about what got done.)
-

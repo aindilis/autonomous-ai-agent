@@ -17,7 +17,7 @@ mushDirectoriesToWatch([
 	
 	%% We need to take a file such as this:
 
-	%% /var/lib/myfrdcsa/codebases/internal/mush/data-git/howtos/when/error-message-3PYqkf
+	%% <FILE>
 
 	%% and generate short, medium and long descriptions about its
 	%% contents (for searching semantically for particulars kinds

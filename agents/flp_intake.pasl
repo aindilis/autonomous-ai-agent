@@ -1,0 +1,161 @@
+:- module(freeLifePlannerIntake, []).
+
+% Load necessary libraries
+:- spami_load_library([name(util1), file('/path/to/util1.pasl')]).
+:- spami_load_library([name(llmQuery), file('/path/to/llm_query.pasl')]).
+
+% Initial goal to start the intake process
++!runIntake(UserID, Output) <-
+	!initializeSession(UserID);
+	!gatherBasicInfo(UserID);
+	!assessImmediateNeeds(UserID);
+	!gatherDetailedInfo(UserID);
+	!generateResourcePlan(UserID);
+	!dumpOutput(Output).
+
+% Initialize session and explain privacy measures
++!initializeSession(UserID) <-
+	!askLLM(explainPrivacy, [
+				 "Welcome to the Free Life Planner. Your privacy and security are our top priorities.",
+				 "Sensitive information will be stored locally on your device and encrypted.",
+				 "We only use provided information to connect you with appropriate resources.",
+				 "You can choose not to answer any question you're not comfortable with.",
+				 "Do you understand and wish to proceed?"
+				], Response);
+	!processResponse(Response, UserID).
+
+% Gather basic information
++!gatherBasicInfo(UserID) <-
+	!askMultipleChoice(UserID, "Which of the following apply to your current situation?",
+			   [homelessness, poverty, disability, illness], Conditions);
+	!askLocation(UserID, Location);
+	!askOpenEnded(UserID, "What is your current living situation?", LivingSituation);
+	+basicInfo(UserID, [Conditions, Location, LivingSituation]).
+
+% Assess immediate needs
++!assessImmediateNeeds(UserID) <-
+	!askYesNo(UserID, "Do you have a safe place to sleep tonight?", HasShelter);
+	!askYesNo(UserID, "Do you have access to food for the next 24 hours?", HasFood);
+	!askYesNo(UserID, "Do you need immediate medical attention?", NeedsMedical);
+	+immediateNeeds(UserID, [HasShelter, HasFood, NeedsMedical]);
+	!handleImmediateNeeds(UserID, [HasShelter, HasFood, NeedsMedical]).
+
+% Gather more detailed information based on previous answers
++!gatherDetailedInfo(UserID) <-
+	?basicInfo(UserID, [Conditions, _, _]);
+	!gatherFinancialInfo(UserID, Conditions);
+	!gatherIdentificationInfo(UserID);
+	!gatherCommunicationInfo(UserID);
+	!gatherTransportationInfo(UserID);
+	!gatherSkillsInfo(UserID);
+	!gatherChallengesInfo(UserID, Conditions).
+
++!gatherFinancialInfo(UserID, Conditions) <-
+	if(member(poverty, Conditions),
+	   (   !askOpenEnded(UserID, "What financial resources do you currently have available?", FinancialResources);
+	       !askYesNo(UserID, "Are you currently receiving any form of financial assistance?", ReceivingAssistance)),
+	   (   FinancialResources = notApplicable, ReceivingAssistance = notApplicable));
+	+financialInfo(UserID, [FinancialResources, ReceivingAssistance]).
+
++!gatherIdentificationInfo(UserID) <-
+	!askYesNo(UserID, "Do you have a valid form of identification?", HasID);
+	if(HasID = false,
+	   !askOpenEnded(UserID, "What challenges are you facing in obtaining identification?", IDChallenges),
+	   IDChallenges = notApplicable);
+	+identificationInfo(UserID, [HasID, IDChallenges]).
+
++!gatherCommunicationInfo(UserID) <-
+	!askYesNo(UserID, "Do you have a working cell phone?", HasPhone);
+	if(HasPhone = false,
+	   !askOpenEnded(UserID, "How can we best contact you?", ContactMethod),
+	   ContactMethod = cellPhone);
+	+communicationInfo(UserID, [HasPhone, ContactMethod]).
+
++!gatherTransportationInfo(UserID) <-
+	!askYesNo(UserID, "Do you have access to reliable transportation?", HasTransportation);
+	if(HasTransportation = false,
+	   !askOpenEnded(UserID, "What transportation challenges are you facing?", TransportationChallenges),
+	   TransportationChallenges = notApplicable);
+	+transportationInfo(UserID, [HasTransportation, TransportationChallenges]).
+
++!gatherSkillsInfo(UserID) <-
+	!askOpenEnded(UserID, "What skills or work experience do you have?", Skills);
+	+skillsInfo(UserID, Skills).
+
++!gatherChallengesInfo(UserID, Conditions) <-
+	!askOpenEnded(UserID, "Are there any specific challenges or barriers you're facing?", GeneralChallenges);
+	if(member(disability, Conditions),
+	   !askOpenEnded(UserID, "Are there any specific accommodations you need due to your disability?", DisabilityChallenges),
+	   DisabilityChallenges = notApplicable);
+	if(member(illness, Conditions),
+	   !askOpenEnded(UserID, "Are there any health-related challenges we should be aware of?", HealthChallenges),
+	   HealthChallenges = notApplicable);
+	+challengesInfo(UserID, [GeneralChallenges, DisabilityChallenges, HealthChallenges]).
+
+% Generate resource plan
++!generateResourcePlan(UserID) <-
+	!gatherAllInfo(UserID, AllInfo);
+	!askLLM(generatePlan, AllInfo, Plan);
+	!presentPlan(UserID, Plan).
+
+% Helper plans
+
++!askMultipleChoice(UserID, Question, Options, Answer) <-
+	!askLLM(askQuestion, [UserID, Question, Options], Response);
+	!processMultipleChoice(Response, Answer).
+
++!askLocation(UserID, Location) <-
+	!askLLM(askLocation, [UserID, "Can you please share your current city and state?"], Response);
+	!processLocation(Response, Location).
+
++!askOpenEnded(UserID, Question, Answer) <-
+	!askLLM(askQuestion, [UserID, Question], Response);
+	!processOpenEnded(Response, Answer).
+
++!askYesNo(UserID, Question, Answer) <-
+	!askLLM(askQuestion, [UserID, Question], Response);
+	!processYesNo(Response, Answer).
+
++!handleImmediateNeeds(UserID, [false, _, _]) <-
+	!askLLM(provideEmergencyShelter, [UserID], ShelterInfo);
+	!presentInfo(UserID, ShelterInfo).
+
++!handleImmediateNeeds(UserID, [_, false, _]) <-
+	!askLLM(provideEmergencyFood, [UserID], FoodInfo);
+	!presentInfo(UserID, FoodInfo).
+
++!handleImmediateNeeds(UserID, [_, _, true]) <-
+	!askLLM(provideMedicalAssistance, [UserID], MedicalInfo);
+	!presentInfo(UserID, MedicalInfo).
+
++!gatherAllInfo(UserID, AllInfo) <-
+	?basicInfo(UserID, BasicInfo);
+	?immediateNeeds(UserID, ImmediateNeeds);
+	?financialInfo(UserID, FinancialInfo);
+	?identificationInfo(UserID, IDInfo);
+	?communicationInfo(UserID, CommunicationInfo);
+	?transportationInfo(UserID, TransportationInfo);
+	?skillsInfo(UserID, SkillsInfo);
+	?challengesInfo(UserID, ChallengesInfo);
+	AllInfo = [BasicInfo, ImmediateNeeds, FinancialInfo, IDInfo, CommunicationInfo, TransportationInfo, SkillsInfo, ChallengesInfo].
+
++!presentPlan(UserID, Plan) <-
+	!askLLM(presentInformation, [UserID, Plan], Presentation);
+	!displayToUser(Presentation).
+
++!presentInfo(UserID, Info) <-
+	!askLLM(presentInformation, [UserID, Info], Presentation);
+	!displayToUser(Presentation).
+
+% Placeholder plans for processing responses and displaying information
++!processResponse(Response, UserID) <- true.
++!processMultipleChoice(Response, Answer) <- true.
++!processLocation(Response, Location) <- true.
++!processOpenEnded(Response, Answer) <- true.
++!processYesNo(Response, Answer) <- true.
++!displayToUser(Information) <- true.
+
+% Plan to output final results
++!dumpOutput(Output) <-
+% Implementation to gather all relevant information and format it as Output
+	    true.

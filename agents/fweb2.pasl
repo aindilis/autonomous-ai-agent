@@ -1,0 +1,16 @@
+:- module('fweb2',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% FWeb2
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+sourcedFrom('/var/lib/myfrdcsa/codebases/internal/fweb2').
+
++!run(fweb2,Arguments,_Output) <-
+	!run(fweb2,[inputList([Entity])],Results).
+
+%% What are some functions that one would expect of a program that
+%% displays software and resources on FRDCSA and FLP? The system is
+%% called FWeb2.

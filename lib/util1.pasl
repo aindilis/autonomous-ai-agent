@@ -1,6 +1,10 @@
 :- module('util1',[]).
 :- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
 
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/llms.pl
+
+%% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/manager_dialog.pl
+
 %% Print messages
 
 +!say(List) <-
@@ -17,6 +21,9 @@
 +!dump(List) <-
 	print_term(List,[quoted(true)]);
 	nl.
+
++!dumpIf(List) <-
+	!dump(List).
 
 %% +!dump(List) <-
 %% 	nl;
@@ -56,7 +63,7 @@
 +!stop(ProcessDescription) <-
 	!say(['Ending:',ProcessDescription]);
 	retract(belief(process(ProcessDescription),[source(self)])).
-	%% !removeBelief(process(ProcessDescription),_).
+%% !removeBelief(process(ProcessDescription),_).
 
 +!exports([]) <-
 	true.
@@ -72,17 +79,37 @@
 
 %% LLM tech
 
+%% +!askLLMListAndGetResult(Question,Answer) <-
+%% 	!askLLMList(Question,Answer).
+
+%% FIXME: Have to have askLLMListAndGetResult not do the sorcerer's
+%% apprentice thing with uxterms if the user cannot reach node3, since
+%% it invokes Capability::LargeLanguageModels::Engine::RemoteLLM via
+%% its StartServer function
+
++!askLLMListAndGetResult(Question,Answer) <-
+	.sleep(0.25);
+	!askLLMList(Question,TmpAnswer);
+	if(TmpAnswer = '_empty_response',
+	   solve(!askLLMListAndGetResult(Question,Answer)),
+	   Answer = TmpAnswer).
+
 +!askLLMList(InputList,OutputList) <-
+	view([1]);
 	atomic_list_concat(InputList,' ',Query);
+	view([2]);
 	llms:askLLM(Query,Answer);
-	llms:extract_list(Answer,[OutputList]).
+		view([3]);
+		if(Answer = '',
+		   OutputList = '_empty_response',
+		   llms:extract_list(Answer,[OutputList])).
 
 +!askLLMConcat(InputList,Answer) <-
-	!dump([test1]);
+	!dump([k1]);
 	atomic_list_concat(InputList,' ',Query);
-	!dump([test2]);
+	!dump([yeah]);
 	llms:askLLM(Query,Answer);
-        !dump([test3]).
+		!dump([k2]).
 
 +!summarize(Text,Summary) <-
 	!dump(['Message: ',Text]);
@@ -142,7 +169,6 @@
 	   Command = Input);
 	!remote_execute(Server,UserName,Command,Result).
 
-
 +!remote_execute(Command,Result) <-
 	listing(serverOnline);
 	listing(serverNotOnline);
@@ -184,3 +210,8 @@
 	localExecution(Command,Result);
 	.print('local_execute succeeded').
 
+
+%% Manager::Dialog
+
++!subsetSelect(Arguments,Results) <-
+	manager_dialog:subset_select(Arguments,Results).

@@ -42,6 +42,7 @@ sourcedFrom('/var/lib/myfrdcsa/codebases/minor/setanta-agent').
 
 	%% setup encryption for Debian
 
+	%% See Lynis.
 
 	%% (do things like make sure all databases are up-to-date "like slocate, dlocate, apt-file, apt-get, etc")
 	%% (make sure things like "reading database" for apt-get are optimized using that technique they explained)
@@ -61,3 +62,4 @@ sourcedFrom('/var/lib/myfrdcsa/codebases/minor/setanta-agent').
 	!sudo('chkrootkit -r');
 	%% !sudo('rkhunter --uppropd');
 	!sudo('rkhunter --uppropd').
+

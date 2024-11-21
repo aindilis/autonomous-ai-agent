@@ -15,7 +15,6 @@
 
 
 featureRequest('WebAgent should check for new materials from important sites, periodically. Especially if it knows of a pending release schedule.').
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% TOOLS TO CONTROL WEB INTERFACE
@@ -104,3 +103,7 @@ featureRequest('WebAgent should check for new materials from important sites, pe
 	%% now, and spider it.  And maybe summarize every doc with the
 	%% LLM, or just the most important ones.
 	true.
+
++!perform_knowledge_base_construction(URI,Results) <-
+	atomic_list_concat(['/var/lib/myfrdcsa/codebases/minor/web-agent/attempts/2/web-agent-kbc.pl','-l',URI],' ',Command);
+	.shell_command_async(Command,Results).

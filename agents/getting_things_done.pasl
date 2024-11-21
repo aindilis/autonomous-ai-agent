@@ -1,0 +1,173 @@
+:- module('getting_things_done',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+hasAuthors(thisDocument,[claude3p5SonnetLLM]).
+
+%% :- setDebug(on).
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+% Add this to your agent code, before the main run predicate
+:- dynamic inbox/1.
+
+% Sample inbox data
+inbox([
+       'Buy groceries: milk, eggs, bread',
+       'Schedule dentist appointment',
+       'Fix leaky faucet in kitchen',
+       'Brainstorm ideas for team building event',
+       'Read article on AI advancements',
+       'Update resume',
+       'Plan summer vacation'
+      ]).
+
++!run(gtd_agent, _Arguments, Output) <-
+	!initialize_gtd_system;
+	?inbox(Items),
+	!process_inbox(Items);
+	!organize_tasks;
+	!review_system;
+	!take_action;
+	!dump([output, Output]).
+
++!process_inbox(Items) <-
+	!dump([process_inbox]);
+	!process_items(Items).
+
++!process_inbox <-
+	!dump([process_inbox]);
+	?inbox(Items),
+	!process_items(Items).
+
++!process_items([]) <-
+	!dump([inbox_processing_complete]).
++!process_items([Item|Rest]) <-
+	!dump([processing_item, Item]);
+	!process_item(Item);
+	!process_items(Rest).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
++!process_item(Item) <-
+	!is_actionable(Item, Actionable),
+	!handle_actionable(Item, Actionable).
+
++!is_actionable(Item, Actionable) <-
+	!askLLMConcat(['Is this item actionable? Answer Yes or No: ', Item], Response),
+	Actionable = Response.
+
++!handle_actionable(Item, 'No') <-
+	!askLLMConcat(['Classify this non-actionable item as Trash, Someday/maybe, or Reference: ', Item], Classification),
+	!add_to_list(Item, Classification).
+
++!handle_actionable(Item, 'Yes') <-
+	!is_single_step(Item, SingleStep),
+	!handle_single_step(Item, SingleStep).
+
++!is_single_step(Item, SingleStep) <-
+	!askLLMConcat(['Can this item be completed in a single step? Answer Yes or No: ', Item], Response),
+	SingleStep = Response.
+
++!handle_single_step(Item, 'No') <-
+	!add_to_list(Item, 'Plan project').
+
++!handle_single_step(Item, 'Yes') <-
+	!more_than_two_minutes(Item, MoreThanTwo),
+	!handle_duration(Item, MoreThanTwo).
+
++!more_than_two_minutes(Item, MoreThanTwo) <-
+	!askLLMConcat(['Will this task take more than 2 minutes? Answer Yes or No: ', Item], Response),
+	MoreThanTwo = Response.
+
++!handle_duration(Item, 'No') <-
+	!add_to_list(Item, 'Do it').
+
++!handle_duration(Item, 'Yes') <-
+	!is_for_me(Item, ForMe),
+	!handle_assignment(Item, ForMe).
+
++!is_for_me(Item, ForMe) <-
+	!askLLMConcat(['Is this task for me to do? Answer Yes or No: ', Item], Response),
+	ForMe = Response.
+
++!handle_assignment(Item, 'No') <-
+	!add_to_list(Item, 'Waiting For').
+
++!handle_assignment(Item, 'Yes') <-
+	!has_specific_time(Item, SpecificTime),
+	!handle_scheduling(Item, SpecificTime).
+
++!has_specific_time(Item, SpecificTime) <-
+	!askLLMConcat(['Does this task have a specific day/time? Answer Yes or No: ', Item], Response),
+	SpecificTime = Response.
+
++!handle_scheduling(Item, 'Yes') <-
+	!add_to_list(Item, 'Calendar').
+
++!handle_scheduling(Item, 'No') <-
+	!add_to_list(Item, '@Context').
+
++!add_to_list(Item, List) <-
+	Goal1 =.. [List|CurrentItems];
+	?Goal1;
+	minus(Goal1);
+	Goal2 =.. [List|[Item|CurrentItems]];
+	+Goal2.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
++!handle_classification(Item, 'Project') <-
+	?projects(Projects),
+	minus(projects(Projects)),
+	+projects([Item|Projects]).
+
++!handle_classification(Item, 'Next Action') <-
+	?next_actions(Actions),
+	minus(next_actions(Actions)),
+	+next_actions([Item|Actions]).
+
+% Add similar handlers for other classifications
+
++!organize_tasks <-
+	!dump([organize_tasks]);
+	!prioritize_next_actions;
+	!group_projects.
+
++!prioritize_next_actions <-
+	?next_actions(Actions),
+	!askLLMConcat(['Prioritize these next actions: ', Actions], PrioritizedActions),
+	minus(next_actions(Actions)),
+	+next_actions(PrioritizedActions).
+
++!group_projects <-
+	?projects(Projects),
+	!askLLMConcat(['Group these projects by area of focus: ', Projects], GroupedProjects),
+	minus(projects(Projects)),
+	+projects(GroupedProjects).
+
++!review_system <-
+	!dump([review_system]);
+	!weekly_review.
+
++!weekly_review <-
+	!review_next_actions;
+	!review_projects;
+	!review_waiting_for;
+	!review_someday_maybe.
+
++!review_next_actions <-
+	?next_actions(Actions),
+	!askLLMConcat(['Review and update these next actions: ', Actions], UpdatedActions),
+	minus(next_actions(Actions)),
+	+next_actions(UpdatedActions).
+
+% Add similar review functions for other lists
+
++!take_action <-
+	!dump([take_action]);
+	?next_actions([NextAction|_]),
+	!execute_action(NextAction).
+
++!execute_action(Action) <-
+	!askLLMConcat(['How to execute this action: ', Action], ExecutionSteps),
+	!dump([execution_steps, ExecutionSteps]).

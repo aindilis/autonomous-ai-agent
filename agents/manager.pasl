@@ -53,3 +53,5 @@ sourcedFrom('/var/lib/myfrdcsa/collaborative/git/jason/examples/manager-old-adap
 +!say_msg(Message,Results) <-
 	query_flp(sayMessage(andrewDougherty,Message,X),Results);
 	.print(['Results: ',Results]).
+
+

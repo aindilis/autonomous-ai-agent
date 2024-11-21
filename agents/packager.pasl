@@ -3,16 +3,15 @@
 
 :- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
 :- spami_load_agent([name('iaec'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/iaec.pasl')]).
-
-%% see also
-%% /var/lib/myfrdcsa/codebases/minor/esp/attempts/1/esp_package.pasl
+:- spami_load_library([name('template_toolkit'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/template_toolkit.pasl')]).
 
 %% Helper plans
 
 %% Breadth First Search
 
 +!run(packager,_Arguments,_Output) <-
-	solve(!package(systemFn('zenon','0.8.2')));
+	solve(!package(systemFn('gdl2qbf','20240808')));
+	%% solve(!package(systemFn('zenon','0.8.2')));
 	!beginPackagingSoftware.
 
 +!package(systemFn(Name,Version)) :: existsDirType(binaryDirectory,systemFn(Name,Version)) <-
@@ -28,7 +27,6 @@
 
 +!sandbox(System) :: not (existsDirType(sandboxDirectory,System) & existsDirType(sandboxSubdirectory,System)) <-
 	(   print(['Sandbox Directories do not exist.'])).
-	
 
 +!sandboxDebian(System) :: existsDirType(debianDirectory,System) <-
 	(   print(['Sandbox Debian Directory exists.'])).
@@ -36,6 +34,11 @@
 +!sandboxDebian(System) :: not existsDirType(debianDirectory,System) <-
 	(   print(['Sandbox Debian Directory does not exist.'])).
 
+
+%% See about building in its own secure container, maybe using Qubes
+%% on a remote machine administered through Perl's Rex or something.
+
+option(promptDir,'/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prompts').
 
 %% see also /var/lib/myfrdcsa/codebases/minor/vger2/vger2.pl
 
@@ -45,6 +48,30 @@
 	?poss(should(download(SystemName)));
 	!dump([systemName,SystemName]).
 
+%% !generateTemplate([template([packager,selectFilesContainingDependencyInfo]),
+%% 		   context(selectFilesContainingDependencyInfo),
+%% 		   variables([systemName(System),fileListing(FileListing)])],
+%% 		  Output).
+		   
+
+%% +!selectFilesContainingDependencyInfo(Arguments) <-
+%% 	.argt(Arguments,[version(versionFn(System,Version))]);
+%% 	!tt_set_variable(selectFilesContainingDependencyInfo, systemName, System);
+%% 	!tt_set_variable(selectFilesContainingDependencyInfo, fileListing, FileListing);
+%% 	!tt_process_template([packager,select_files_containing_dependency_info], selectFilesContainingDependencyInfo, Question1);
+%% 	!askLLMList([Question1],Files);
+%% 	.forall(member(File,Files),
+%% 		solve(!locateDependencies([version(versionFn(System,Version)),file(File)]))).
+
+%% +!locateDependencies(Arguments) <-
+%% 	.argt(Arguments,[version(versionFn(System,Version)),file(File)]);
+%% 	!tt_set_variable(locateDependencies, systemName, System);
+%% 	readFileContents(File,FileContents);
+%% 	!tt_set_variable(locateDependencies, fileContents, FileContents);
+%% 	!tt_process_template([packager,locate_dependencies], locateDependencies, Question2);
+%% 	!askLLMList([Question2],Dependencies);
+%% 	.forall(member(Dependency,Dependencies),
+%% 		solve(!freekbs2:assert(Mt,packagingDependsOn(versionFn(System,Version),versionFn(System,Version))))).
 
 %% MAKE PACKAGER/ESP WORK MORE LIKE IAEC:
 

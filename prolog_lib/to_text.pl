@@ -1,5 +1,7 @@
 :- prolog_ensure_loaded('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/apis/perl5_connection.pl').
 
+%% FIXME: switch to using: /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/apis/perl5_interface.pl
+
 %% see also 
 %% /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/modules/perllib_cacher.pl
 %% /var/lib/myfrdcsa/codebases/minor/formalog/unilang.pl

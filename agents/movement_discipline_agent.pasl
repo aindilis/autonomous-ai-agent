@@ -1,0 +1,111 @@
+:- module('movement_discipline_agent',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- dynamic item_location/2, door_status/2, user_location/1.
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+% Initial beliefs
+item_location(keys, drawer).
+item_location(phone, desk).
+item_location(mask, hook).
+door_status(front_door, closed).
+user_location(bedroom).
+
+% Plans
+
++!run(movement_discipline_agent, _, Output) <-
+	!prepare_to_leave;
+	!execute_leaving_sequence;
+	.list_beliefs(Output).
+
++!prepare_to_leave <-
+	!check_cameras;
+	!gather_items([keys, phone, mask]);
+	!confirm_items.
+
++!check_cameras <-
+	.print("Checking security cameras...");
+	!contact_user("Please check the security cameras before leaving.");
+	!await_user_confirmation("cameras checked").
+
++!gather_items([]) <- true.
++!gather_items([Item|Rest]) <-
+	?item_location(Item, Location);
+	!contact_user(["Please retrieve ", Item, " from the ", Location, "."]);
+	!await_user_confirmation(["retrieved ", Item]);
+	minus(item_location(Item, Location));
+	+item_location(Item, person);
+	!gather_items(Rest).
+
++!confirm_items <-
+	.findall(Item, item_location(Item, person), Items);
+	!contact_user(["Please confirm you have the following items: ", Items]);
+	!await_user_confirmation("items confirmed").
+
++!execute_leaving_sequence <-
+	!move_to_door;
+	!open_door;
+	!exit_and_lock.
+
++!move_to_door <-
+	?user_location(CurrentLocation);
+	!contact_user(["Please move from ", CurrentLocation, " to the front door."]);
+	!await_user_confirmation("at front door");
+	minus(user_location(CurrentLocation));
+	+user_location(front_door).
+
++!open_door <-
+	?door_status(front_door, Status);
+	if(Status == closed,
+	   (   
+	       solve(!contact_user("Please open the front door.")),
+	       solve(!await_user_confirmation("door opened")),
+	       solve(minus(door_status(front_door, closed))),
+	       solve(+door_status(front_door, open))
+	   ),
+	   true).
+
++!exit_and_lock <-
+	!contact_user("Please exit through the front door.");
+	!await_user_confirmation("exited");
+	!contact_user("Please lock the front door.");
+	!await_user_confirmation("door locked");
+	minus(door_status(front_door, open));
+	+door_status(front_door, locked);
+	minus(user_location(front_door));
+	+user_location(outside).
+
+% Helper plans for user communication
+
++!contact_user(Message) <-
+	.concat(Message, Concatenated);
+	.print(["User Message: ", Concatenated]).
+
++!await_user_confirmation(Action) <-
+	.print(["Awaiting confirmation for: ", Action]);
+	.sleep(1.000); % Simulating user response time
+	.print(["Confirmed: ", Action]).
+
+% Behavior tree executor (simplified version)
++!execute_behavior_tree(Node) <-
+	!evaluate_node(Node, Result);
+	if(Result == success,
+	   solve(.print(["Behavior tree node ", Node, " executed successfully."])),
+	   solve(.print(["Behavior tree node ", Node, " failed."]))).
+
++!evaluate_node(check_cameras, Result) <- !check_cameras; Result = success.
++!evaluate_node(gather_items, Result) <- !gather_items([keys, phone, mask]); Result = success.
++!evaluate_node(confirm_items, Result) <- !confirm_items; Result = success.
++!evaluate_node(move_to_door, Result) <- !move_to_door; Result = success.
++!evaluate_node(open_door, Result) <- !open_door; Result = success.
++!evaluate_node(exit_and_lock, Result) <- !exit_and_lock; Result = success.
+
+% Example usage
++!start_movement_discipline_agent <-
+	!execute_behavior_tree(check_cameras);
+	!execute_behavior_tree(gather_items);
+	!execute_behavior_tree(confirm_items);
+	!execute_behavior_tree(move_to_door);
+	!execute_behavior_tree(open_door);
+	!execute_behavior_tree(exit_and_lock).

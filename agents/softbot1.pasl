@@ -1,17 +1,20 @@
 :- module('softbot1',[]).
 :- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
 
+%% :- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
 %% :- module('softbot1',['+'/1,'-'/1,'!'/1]).
 
 :- dynamic serverOnline/0, serverNotOnline/0.
 :- dynamic serverOnline/1, serverNotOnline/1.
 
 +!run(softbot1,Arguments,Output) <-
-	true.
+	!test_check_and_run(Result).
 
 +!test_check_and_run(Result) <-
 	!server_is_online_p;
-	!execRemoteShellCommand('ls -1 /',Result).
+	!execRemoteShellCommand('ls -1 /',Result);
+	!dump([result,Result]).
 
 +!test_check_server <-
 	.print('checking');
@@ -72,6 +75,19 @@
 	print([result1,Result1]);
 	if(string_match_p(Result1,'SUCCESS'),Help = Help1,fail).
 
++!test_bs(Message) :: true <-
+	.print([Message,' - This is such BS!']);
+	+bs1;
+	fail.
+
+-!test_bs(Message) :: true <-
+	.print([Message,' - This is also BS!']);
+	+bs4.
+
++bs1 <-
+	.print('heya').
+
+
 +!test_plan_failure(Message) :: true <-
 	print_term([message1,Message],[]);
 	+testWorked;
@@ -106,7 +122,7 @@
 	   %%    Help = Help1,
 	   %%    true)
 
-%% Integrate SPSE2-Formalog here. Have a quick n dirty caching
+% Integrate SPSE2-Formalog here. Have a quick n dirty caching
 %% mechanism for SPSE2-Formalog, so don't have to hammer the DB every
 %% time we wish to load it.
 

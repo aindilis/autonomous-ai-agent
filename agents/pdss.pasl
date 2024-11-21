@@ -1,0 +1,24 @@
+:- module(pdss, []).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_agent([name('argument'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/argument.pasl')]).
+
+%% In order to ask specific things online about products that the LLM might not have the specifics for
+:- spami_load_library([name('rag'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/rag.pasl')]).
+
+%% Agent initialization
++!initialize_agent <-
+	true.
+%% 	%% !setup_remote_environment;
+%% 	%% !load_knowledge_base;
+%% 	%% !set_initial_goals.
+
+
+%% need to incorporate a budget
+
+%% This purchase is within our budget?
+%% This purchase is a need?
+%% This purchase is a want?
+%% Are wants and needs are relative to income, liabilities, assets,
+%% etc?
+%% ASK CLAUDE (what kinds of criteria should we have here?)

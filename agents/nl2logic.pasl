@@ -1,0 +1,119 @@
+:- module('nl2logic',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+
+
+%% FREEKBS2, LLMS, TemplateToolkit, CYC_API, etc
+
+
+%% The point of this system is to have an agentic reactive system for
+%% translating natural language to logic (e.g. SubL/CycL) similar to
+%% E2C, RKF, etc.
+
+%% The insight is that one would have issues translating to logic
+%% because one might have to interact with and explore CYC in order to
+%% fully understand new problems. This system affords the capability
+%% to interact with CYC and pose questions and get answers, useful in
+%% the translation. It will therefore be slower than traditional
+%% systems, but could be used in conjunction with them.
+
+%% Something we must do - Given any word or phrase, we must
+%% necessarily hypothesize that it could be polysemous, and moreover,
+%% that there could be a branch for each of multiple hypothetical
+%% additional senses.
+
++!run(nl2logic,[]) <-
+	!iterate_over([[a],[b],[c],[d]],[call(capitalize)],Results);
+	write_list(Results).
+
+%% FIXME: migrate.
+
++!run(nl2logic,_Arguments,_Output) <-
+	!getInitialPolemics(Polemic);
+	!dump(Polemic);
+	+polemic(Polemic);
+	!nl2logicMainLoop.
+
++!getInitialPolemic(Polemic) <-
+	!queryFLP(state:fluents_for_module(state,AllAssertedKnowledge),Results);
+	with_output_to(atom(Polemic),write_term(Results,[quoted(true)])).
+
++!nl2logicMainLoop <-
+	findall(Polemic,belief(polemic(Polemic),_),Polemics);
+	!process_head(Polemics).
+
++!process_head([Polemic|_]) <-
+	!getThreats(Polemic,Threats);
+	!sortThreatsBySeriousness(Polemic,Threats,SortedThreats);
+	!dump([sortedThreats,SortedThreats]);
+	forall(member(SortedThreat,SortedThreats),
+	       (   
+		   solve(!dump([sortedThreat,SortedThreat])),
+		   solve(!generateContingencyPlansForSortedThreat(Polemic,SortedThreat,ContingencyPlans)),
+		   solve(!dump([sortedThreat,SortedThreat,contingencyPlans,ContingencyPlans])),
+		   forall(member(ContingencyPlan,ContingencyPlans),
+			  (
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan])),
+			   solve(!getLikelyEffectsOfContingencyPlan(Polemic,SortedThreat,ContingencyPlan,LikelyEffects)),
+			   solve(!dump([sortedThreat,SortedThreat,contingencyPlan,ContingencyPlan,likelyEffects,LikelyEffects])),
+			   solve(!applyLikelyEffectsToPolemic(Polemic,SortedThreat,ContingencyPlan,LikelyEffects,NewPolemic)),
+			   solve(!dump([newPolemic,NewPolemic])),
+			   solve(+polemic(NewPolemic))
+			  )
+			 )
+	       )
+	      );
+	!removeBelief(polemic(Polemic),[source(self)]);
+	!nl2logicMainLoop.
+
+%% LLM plans
+
++!getThreats(Polemic,Threats) <-
+	.print('Getting threats...');
+	!askLLMList(['Consider the following world state: < < < ',
+		     Polemic,
+		     ' > >. > ',
+		     'Please create a threat list of threats to our well-being based on this current world state, ordrered by and including their importance, urgency, likelihood and impact: '
+		    ],
+		    Threats).
+
++!sortThreatsBySeriousness(Polemic,Threats,SortedThreats) <-
+	.print('Sorting threats...');
+	!render_list(Threats,ThreatsString);
+	!askLLMList(['Consider the following world state and associated threats: ',
+		     '< < < Polemic: ',Polemic,' > > > : ',
+		     '< < < Threats: ',ThreatsString,' > > >. ',
+		     'Please sort the list of threats in terms of seriousness, ordered by and including importance, urgency, likelihood and impact: '
+		     ],SortedThreats).
+
+%% Also, eventually, generate here the predicting, monitoring,
+%% mitigating, and managing plans, not just contingency plans.
+
++!generateContingencyPlansForSortedThreat(Polemic,SortedThreat,ContingencyPlans) <-
+	.print('Generating contingency plans...');
+	!askLLMList(['Consider the following world state and associated threat: ',
+		     '< < < Polemic: ',Polemic,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > >. ',
+		     'Please generate a list of potential contingency plans that would be an appropriate response to this particular threat in this situation: '
+		     ],ContingencyPlans).
+
++!getLikelyEffectsOfContingencyPlan(Polemic,SortedThreat,ContingencyPlan,LikelyEffects) <-
+	.print('Getting likely effects...');
+	!askLLMList(['Consider the following world state and associated plan: ',
+		     '< < < Polemic: ',Polemic,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > >. ',
+		     'Please generate an ordered list of effects that executing the plan would have on the world state: '
+		    ],LikelyEffects).
+
++!applyLikelyEffectsToPolemic(Polemic,SortedThreat,ContingencyPlan,LikelyEffects,NewPolemic) <-
+	.print('Applying likely effects...');
+	!render_list(LikelyEffects,LikelyEffectsString);
+	!askLLMConcat(['Consider the following world state and effects of a plan: ',
+		     '< < < World State: ',Polemic,' > > > : ',
+		     '< < < Threat: ',SortedThreat,' > > > : ',
+		     '< < < Plan: ',ContingencyPlan,' > > > : ',
+		     '< < < Effects : ',LikelyEffectsString,' > > >. ',
+		     'Please generate the new world state that results from applying these effects to the world state: '
+		    ],NewPolemic).

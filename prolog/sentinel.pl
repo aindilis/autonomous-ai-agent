@@ -1,7 +1,7 @@
 :- use_module(library(inotify)).
 
 sentinelDirectoriesToWatch([
-			    '/home/andrewdo/Downloads/sentinel-test'
+			    <REDACTED>
 			    ]).
 
 %% has_extension(File,Ext) :-

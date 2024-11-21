@@ -1,0 +1,13 @@
+Can you please read the following file and make a CSV with the following information:
+
+For each dependency necessary to install this system called [% systemName %], please list:
+
+The dependency name, version, description, and location (such as a URL where to find it):
+
+The file:
+
+< < <
+
+[% fileContents %]
+
+> > >

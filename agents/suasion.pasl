@@ -9,13 +9,17 @@ sourcedFrom('suasion').
 
 +!run(suasion,Arguments,_Output) <-
 	%% argt(Arguments,[]);
-	+goal(persuade('<PERSON1>','<PERSON2>',test1)).
+	+goal(persuade(<PERSON>,<PERSON>,test1)).
 
 %% in Argumentation in Artificial Intelligence, see chapter 14 "Models of Persuasive Dialog"
 
 +goal(persuade(Agent1,Agent2,Conclusion)) <-
 	%% !argument(validate(Conclusion));
 	true.
+
+%% Distinguish between wanting someone to know something that we
+%% believe to be true, versus that we believe to be false (for
+%% instance, when justified, such as in self-defense).
 
 %% Have the ability to invoke the LLM, WebAgent, and also the Argument
 %% system.

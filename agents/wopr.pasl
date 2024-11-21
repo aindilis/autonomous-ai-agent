@@ -1,6 +1,8 @@
 :- module('wopr',[]).
 :- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
 
+:- spami_report_fact(atTime([2024-10-16,10:06:33],workingProperly(wopr))).
+
 :- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
 
 %% Helper plans
@@ -55,7 +57,7 @@
 
 %% FIXME: WOPR needs to also come up with or deal with more common
 %% threats that affect everyone. For instance, we're based in
-%% Michigan. So it should naturally create contingency plans for what
+%% <LOCATION>. So it should naturally create contingency plans for what
 %% to do about cold weather, especially power outages and things that
 %% affect heating the house. But Mistral Instruct 7B isn't really
 %% detailed or accurate enough, we need GPT-4.

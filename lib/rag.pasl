@@ -1,0 +1,4 @@
+:- module('rag',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% use LLM stuff here. Figure out how to get RAG working.
