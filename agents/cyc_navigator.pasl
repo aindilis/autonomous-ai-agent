@@ -1,0 +1,87 @@
+:- module('cyc_navigator',[]).
+:- include('/var/lib/myfrdcsa/codebases/minor/agentspeak-l-swi-prolog-meta-interpreter/src/state-exporter.pl').
+
+%% Cyc_Navigator
+
+%% see also:
+%%   /var/lib/myfrdcsa/codebases/minor/flp-cyc/cyc/cyc_client.pl
+%%   /var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/prolog/cyc_navigator.pl
+
+%% Ensure RemoteLLM connected
+
++!comment(Item,Comment) :: cycConstantP(Item) <-
+	cyc_client:comment(Item,Comment).
+
+%% Load any importables here
+:- spami_load_library([name('util1'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/util1.pasl')]).
+:- spami_load_library([name('template_toolkit'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/lib/template_toolkit.pasl')]).
+:- spami_load_agent([name('web_agent'),file('/var/lib/myfrdcsa/codebases/minor/prolog-agent/attempts/3/autonomous_ai_agent/agents/web_agent.pasl')]).
+
++!run(cyc_navigator,Arguments,Output) <-
+	!initiateStudySession(Output);
+	findall(Elt,study(Elt),StudyAgenda);
+	!dump([studyAgenda,StudyAgenda]);
+	!processStudyAgenda.
+
++!initiateStudySession(Retval) <-
+	cyc_client:cycQuery(isa(X,'Dog'),'EverythingPSC',Retval);
+	!dump([retval,Retval]);
+	flatten(Retval,List);
+	forall(member(Elt,List),
+	       (   cycConstantP(Elt) -> add_to_study_agenda(Elt) ; true)).
+
++!processStudyAgenda <-
+	!printStudyAgenda;
+	retract(study(Item));
+	(   cycConstantP(Item) ->
+	    (
+	     solve(!comment(Item,Comment)),
+	     (	 Comment == ['NIL'] ->
+		 solve(!dump([item,Item])) ;
+		 (
+		  solve(!askTemplate([template([cyc_navigator,examine_comment]),
+				      context(examineComment),
+				      variables([cycComment(Comment)])],Answers)),
+		  solve(!dump([item,Item,comment,Comment,answers,Answers])),
+		  forall(member(Elt,Answers),add_to_study_agenda(Elt))
+		 )
+	     )
+	    ));
+	!processStudyAgenda.
+
+-!processStudyAgenda <-
+	!dump([doneStudying]);
+	true.
+	    
++!printStudyAgenda <-
+	findall(Elt,study(Elt),StudyAgenda);
+	nl;
+	write('Study Agenda: ');
+	nl;
+	write_list(StudyAgenda);
+	nl;
+	nl.
+
+%% Use WebAgent to locate, browse and obtain the OpenCyc API docs
+%% (locally), as well as our cyc_client.pl stuff, and then ask LLM to
+%% generate some example cycQuery/cycEval calls.
+
+%% FIXME: Make a module or something for interfacing with local copy
+%% of OpenCyc documentation, perhaps RAG, etc.
+
+
+%% %% cyc_navigator/examine_comment.tt:
+
+%% Consider the following Cyc comment:
+
+
+%% < < <
+
+%% [% cycComment %]
+
+%% > > >
+
+
+%% Please extract out a Prolog list containing all interesting Cyc constants that are worth further study:
+
+

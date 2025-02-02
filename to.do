@@ -77,7 +77,6 @@
  ;; [c]
  ;; [d,'rm -f /dev/shm/shell_command_to_string.txt']
  ;; [e,'/var/lib/myfrdcsa/codebases/minor/prolog-agent/scripts/prolog-agent-query-llm-wrapper-remote.pl 2> /dev/shm/prolog-agent-warnings.txt 1> /dev/shm/shell_command_to_string.txt']
- ;; 
 
  ;; 1
  ;; 2
